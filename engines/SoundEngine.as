@@ -28,7 +28,6 @@ package egg82.engines {
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import org.as3wavsound.WavSoundChannel;
-	import reg.RegOptions;
 	
 	/**
 	 * ...
