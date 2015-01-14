@@ -2,13 +2,13 @@
 AS3 utility classes - built for Starling and AIR
 
 ## Prerequisites
-[Adobe AIR SDK][1]
-[Starling Framework][2]
-[AS3 Signals][3]
-[AS3WavSound][4]
-[AS3 Controller Input][5]
-[AS3 Cryptography Library][6]
-[ASSQL][7]
+- [Adobe AIR SDK][1]
+- [Starling Framework][2]
+- [AS3 Signals][3]
+- [AS3WavSound][4]
+- [AS3 Controller Input][5]
+- [AS3 Cryptography Library][6]
+- [ASSQL][7]
 
 [1]:http://www.adobe.com/devnet/air/air-sdk-download.html
 [2]:http://gamua.com/starling/download/
