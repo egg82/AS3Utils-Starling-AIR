@@ -21,6 +21,7 @@
  */
 
 package egg82.base {
+	import starling.core.Starling;
 	
 	/**
 	 * ...
@@ -30,6 +31,7 @@ package egg82.base {
 	public class BaseState extends BaseSprite {
 		//vars
 		public var forceUpdate:Boolean = false;
+		private var _window:BaseWindow = null;
 		
 		//constructor
 		public function BaseState() {
@@ -39,6 +41,15 @@ package egg82.base {
 		//public
 		public function resize():void {
 			
+		}
+		
+		public function get window():BaseWindow {
+			return _window;
+		}
+		public function set window(val:BaseWindow):void {
+			if (!_window && stage != Starling.all[0].stage) {
+				_window = val;
+			}
 		}
 		
 		//private

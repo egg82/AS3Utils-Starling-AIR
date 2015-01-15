@@ -79,21 +79,21 @@ package egg82.engines {
 				_keys.push(false);
 			}
 			
-			ControllerInput.initialize(Starling.current.nativeStage);
+			ControllerInput.initialize(Starling.all[0].nativeStage);
 			
-			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+			Starling.all[0].nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			Starling.all[0].nativeStage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 			
-			Starling.current.nativeStage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-			Starling.current.nativeStage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
 			
-			Starling.current.nativeStage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
-			Starling.current.nativeStage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onMiddleMouseDown);
-			Starling.current.nativeStage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDown);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onMiddleMouseDown);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDown);
 			
-			Starling.current.nativeStage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-			Starling.current.nativeStage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMiddleMouseUp);
-			Starling.current.nativeStage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUp);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMiddleMouseUp);
+			Starling.all[0].nativeStage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUp);
 		}
 		
 		//public

@@ -46,7 +46,7 @@ package egg82.base {
 			var options:NativeWindowInitOptions = new NativeWindowInitOptions();
 			
 			options.systemChrome = (border) ? NativeWindowSystemChrome.STANDARD : NativeWindowSystemChrome.NONE;
-			options.renderMode = Starling.current.nativeStage.nativeWindow.renderMode;
+			options.renderMode = Starling.all[0].nativeStage.nativeWindow.renderMode;
 			options.resizable = resizable;
 			
 			super(options);

@@ -23,6 +23,7 @@
 package egg82.engines {
 	import egg82.base.BaseState;
 	import egg82.base.BaseWindow;
+	import feathers.core.FocusManager;
 	import flash.events.TimerEvent;
 	import flash.utils.getTimer;
 	import flash.utils.Timer;
@@ -97,6 +98,7 @@ package egg82.engines {
 				Starling.current.stage.addChild(newState);
 			}
 			
+			newState.window = _windows[window];
 			newState.create();
 			InputEngine.update();
 			newState.update();
@@ -138,6 +140,7 @@ package egg82.engines {
 				Starling.current.stage.addChild(newState);
 			}
 			
+			newState.window = _windows[window];
 			newState.create();
 			InputEngine.update();
 			newState.update();
@@ -263,7 +266,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, _windows[window].starling.nativeStage.stageWidth, _windows[window].starling.nativeStage.stageHeight));
 			} else {
-				Starling.current.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, Starling.current.nativeStage.stageWidth, Starling.current.nativeStage.stageHeight));
+				Starling.current.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, Starling.all[0].nativeStage.stageWidth, Starling.all[0].nativeStage.stageHeight));
 			}
 		}
 		
@@ -386,6 +389,8 @@ package egg82.engines {
 		private static function onContextCreated(e:Event):void {
 			Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 			
+			FocusManager.setEnabledForStage(Starling.all[0].stage, true);
+			
 			addState(_inits[0]);
 			_inits[0] = null;
 			
@@ -405,6 +410,8 @@ package egg82.engines {
 			}
 			
 			starling.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+			
+			FocusManager.setEnabledForStage(starling.stage, true);
 			
 			for (var i:uint = 0; i < _windows.length; i++) {
 				if (_windows[i] && _windows[i].starling === starling) {
