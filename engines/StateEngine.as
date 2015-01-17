@@ -64,13 +64,13 @@ package egg82.engines {
 			
 			_runOnce = false;
 			
-			Starling.current.stage.addEventListener(ResizeEvent.RESIZE, onResize);
+			Starling.all[0].stage.addEventListener(ResizeEvent.RESIZE, onResize);
 			
 			_fixedTimestepAccumulator = 0;
 			_timestep = StateEngine.updateFPS;
 			
 			addWindow(null, initState);
-			Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+			Starling.all[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 		}
 		
 		//public
@@ -79,7 +79,7 @@ package egg82.engines {
 				return;
 			}
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.stop();
 				_drawTimer.stop();
 			}
@@ -95,7 +95,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.addChild(newState);
 			} else {
-				Starling.current.stage.addChild(newState);
+				Starling.all[0].stage.addChild(newState);
 			}
 			
 			newState.window = _windows[window];
@@ -104,7 +104,7 @@ package egg82.engines {
 			newState.update();
 			newState.draw();
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.start();
 				_drawTimer.start();
 			}
@@ -116,7 +116,7 @@ package egg82.engines {
 				return;
 			}
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.stop();
 				_drawTimer.stop();
 			}
@@ -129,7 +129,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.removeChild(oldState);
 			} else {
-				Starling.current.stage.removeChild(oldState);
+				Starling.all[0].stage.removeChild(oldState);
 			}
 			
 			_states[window].splice(swapAt, 0, newState);
@@ -137,7 +137,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.addChild(newState);
 			} else {
-				Starling.current.stage.addChild(newState);
+				Starling.all[0].stage.addChild(newState);
 			}
 			
 			newState.window = _windows[window];
@@ -146,7 +146,7 @@ package egg82.engines {
 			newState.update();
 			newState.draw();
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.start();
 				_drawTimer.start();
 			}
@@ -164,7 +164,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.removeChild(state);
 			} else {
-				Starling.current.stage.removeChild(state);
+				Starling.all[0].stage.removeChild(state);
 			}
 			
 			if (_states[window].length > 0) {
@@ -192,7 +192,7 @@ package egg82.engines {
 				return;
 			}
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.stop();
 				_drawTimer.stop();
 			}
@@ -266,7 +266,7 @@ package egg82.engines {
 			if (_windows[window]) {
 				_windows[window].starling.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, _windows[window].starling.nativeStage.stageWidth, _windows[window].starling.nativeStage.stageHeight));
 			} else {
-				Starling.current.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, Starling.all[0].nativeStage.stageWidth, Starling.all[0].nativeStage.stageHeight));
+				Starling.all[0].stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, Starling.all[0].nativeStage.stageWidth, Starling.all[0].nativeStage.stageHeight));
 			}
 		}
 		
@@ -350,11 +350,11 @@ package egg82.engines {
 		}
 		
 		private static function onResize(e:ResizeEvent):void {
-			Starling.current.viewPort.width = e.width;
-			Starling.current.viewPort.height = e.height;
+			Starling.all[0].viewPort.width = e.width;
+			Starling.all[0].viewPort.height = e.height;
 			
-			Starling.current.stage.stageWidth = e.width;
-			Starling.current.stage.stageHeight = e.height;
+			Starling.all[0].stage.stageWidth = e.width;
+			Starling.all[0].stage.stageHeight = e.height;
 			
 			for (var i:uint = 0; i < _states[0].length; i++) {
 				_states[0][i].resize();
@@ -387,7 +387,7 @@ package egg82.engines {
 		}
 		
 		private static function onContextCreated(e:Event):void {
-			Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+			Starling.all[0].removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 			
 			FocusManager.setEnabledForStage(Starling.all[0].stage, true);
 			
@@ -428,7 +428,7 @@ package egg82.engines {
 			
 			resize(window);
 			
-			if (Starling.current.context) {
+			if (Starling.all[0].context) {
 				_updateTimer.start();
 				_drawTimer.start();
 			}
