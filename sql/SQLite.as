@@ -101,12 +101,6 @@ package egg82.sql {
 			}
 			
 			connection.close();
-			statement = null;
-			backlog = null;
-			backlogData = null;
-			file = null;
-			
-			dispatch(SQLiteEvent.DISCONNECTED);
 		}
 		
 		public function query(q:String, data:Object = null):void {

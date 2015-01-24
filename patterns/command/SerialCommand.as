@@ -99,8 +99,6 @@ package egg82.patterns.command {
 				
 				var command:Command = obj as Command;
 				
-				started = true;
-				
 				command.ON_COMPLETE.addOnce(onComplete);
 				command.start();
 				

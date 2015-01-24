@@ -42,7 +42,7 @@ package egg82.net {
 	
 	public class TCPServer {
 		//vars
-		public const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var server:ServerSocket;
 		private var clients:Vector.<Socket> = new Vector.<Socket>();
