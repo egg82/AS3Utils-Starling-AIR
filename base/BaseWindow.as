@@ -22,12 +22,13 @@
 
 package egg82.base {
 	import egg82.engines.StateEngine;
+	import egg82.events.BaseWindowEvent;
+	import egg82.patterns.Observer;
 	import flash.display.NativeWindow;
 	import flash.display.NativeWindowInitOptions;
 	import flash.display.NativeWindowSystemChrome;
 	import flash.events.Event;
 	import flash.geom.Rectangle;
-	import org.osflash.signals.Signal;
 	import starling.core.Starling;
 	
 	/**
@@ -37,7 +38,7 @@ package egg82.base {
 	
 	public class BaseWindow extends NativeWindow {
 		//vars
-		public const ON_CLOSING:Signal = new Signal();
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var _starling:Starling = null;
 		
@@ -82,7 +83,11 @@ package egg82.base {
 				}
 			}
 			
-			ON_CLOSING.dispatch();
+			dispatch(BaseWindowEvent.CLOSING);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

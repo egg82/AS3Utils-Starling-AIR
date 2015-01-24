@@ -21,11 +21,12 @@
  */
 
 package egg82.mod {
+	import egg82.events.BaseModEvent;
+	import egg82.patterns.Observer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.system.MessageChannel;
 	import flash.system.Worker;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -34,6 +35,8 @@ package egg82.mod {
 	
 	public class BaseMod extends Sprite {
 		//vars
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
+		
 		protected const ON_MESSAGE:Signal = new Signal(Object, String);
 		
 		private var incoming:Array = new Array();
@@ -52,34 +55,42 @@ package egg82.mod {
 				return;
 			}
 			
-			var inc:MessageChannel = Worker.current.getSharedProperty(name + "_incoming");
-			var out:MessageChannel = Worker.current.getSharedProperty(name + "_outgoing");
+			var incoming:MessageChannel = Worker.current.getSharedProperty(name + "_incoming");
+			var outgoing:MessageChannel = Worker.current.getSharedProperty(name + "_outgoing");
 			
-			if (inc && out) {
-				inc.addEventListener(Event.CHANNEL_MESSAGE, onMessage);
+			if (incoming && outgoing) {
+				incoming.addEventListener(Event.CHANNEL_MESSAGE, onMessage);
 				
-				incoming[name] = inc;
-				outgoing[name] = out;
+				this.incoming[name] = incoming;
+				this.outgoing[name] = outgoing;
 			}
 		}
-		protected function sendMessage(obj:Object, channel:String):void {
-			if (!channel || channel == "") {
-				return;
-			}
-			if (!outgoing[channel]) {
+		protected function sendMessage(channel:String, data:Object):void {
+			if (!channel || channel == "" || !this.outgoing[channel]) {
 				return;
 			}
 			
-			(outgoing[channel] as MessageChannel).send(obj);
+			var outgoing:MessageChannel = outgoing[channel] as MessageChannel;
+			
+			outgoing.send(data);
 		}
 		
 		private function onMessage(e:Event):void {
+			var channel:MessageChannel = e.target as MessageChannel;
+			
 			for (var key:String in incoming) {
-				if (incoming[key] === e.target) {
-					ON_MESSAGE.dispatch((e.target as MessageChannel).receive() as Object, key);
+				if (incoming[key] === channel) {
+					dispatch(BaseModEvent.MESSAGE, {
+						"channel": key,
+						"data": channel.receive()
+					});
 					return;
 				}
 			}
+		}
+		
+		private function dispatch(event:String, data:Object):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

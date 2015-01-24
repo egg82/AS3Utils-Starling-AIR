@@ -21,6 +21,8 @@
  */
 
 package egg82.net {
+	import egg82.events.TCPClientEvent;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.OutputProgressEvent;
@@ -29,7 +31,6 @@ package egg82.net {
 	import flash.events.TimerEvent;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -38,43 +39,14 @@ package egg82.net {
 	
 	public class TCPClient {
 		//vars
-		public const ON_CONNECTED:Signal = new Signal();
-		public const ON_ERROR:Signal = new Signal(String);
-		public const ON_DATA:Signal = new Signal(ByteArray);
-		public const ON_DOWNLOAD_PROGRESS:Signal = new Signal(Number, Number);
-		public const ON_UPLOAD_PROGRESS:Signal = new Signal(Number, Number);
-		public const ON_COMPLETE:Signal = new Signal();
-		public const ON_CLOSE:Signal = new Signal();
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		private var socket:Socket;
+		private var socket:Socket = new Socket();
 		private var backlog:Vector.<ByteArray>;
 		private var sending:Boolean;
 		
 		//constructor
 		public function TCPClient() {
-			
-		}
-		
-		//public
-		public function connect(host:String, port:uint):void {
-			if (socket) {
-				disconnect();
-			}
-			if (port > 65535) {
-				return;
-			}
-			
-			socket = new Socket();
-			sending = true;
-			try {
-				socket.connect(host, port);
-			}catch (e:Error) {
-				ON_ERROR.dispatch(e.message);
-				return;
-			}
-			
-			backlog = new Vector.<ByteArray>();
-			
 			socket.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
 			socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
 			socket.addEventListener(Event.CONNECT, onConnect);
@@ -82,36 +54,46 @@ package egg82.net {
 			socket.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, onOutputProgress);
 			socket.addEventListener(Event.CLOSE, onClose);
 		}
-		public function disconnect():void {
-			if (!socket) {
+		
+		//public
+		public function connect(host:String, port:uint):void {
+			if (port > 65535 || socket.connected) {
 				return;
 			}
 			
-			socket.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-			socket.removeEventListener(Event.CONNECT, onConnect);
-			socket.removeEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
-			socket.removeEventListener(OutputProgressEvent.OUTPUT_PROGRESS, onOutputProgress);
-			socket.removeEventListener(Event.CLOSE, onClose);
+			sending = true;
+			try {
+				socket.connect(host, port);
+			} catch (ex:Error) {
+				dispatch(TCPClientEvent.ERROR, ex.message);
+				return;
+			}
+			
+			backlog = new Vector.<ByteArray>();
+		}
+		public function disconnect():void {
+			if (!socket.connected) {
+				return;
+			}
 			
 			try {
 				socket.close();
-			} catch (e:Error) {
-				
-			}
-			
-			socket = null;
-			backlog = null;
-			
-			ON_CLOSE.dispatch();
-		}
-		
-		public function send(data:ByteArray):void {
-			if (!socket || !data || data.length == 0) {
+			} catch (ex:Error) {
+				dispatch(TCPClientEvent.ERROR, ex.message);
 				return;
 			}
 			
-			if (backlog.length > 0 || sending || !socket.connected) {
+			backlog = null;
+			
+			dispatch(TCPClientEvent.CLOSED);
+		}
+		
+		public function send(data:ByteArray):void {
+			if (!socket.connected || !data || data.length == 0) {
+				return;
+			}
+			
+			if (sending || backlog.length > 0) {
 				backlog.push(data);
 			} else {
 				sending = true;
@@ -119,61 +101,76 @@ package egg82.net {
 				try {
 					socket.writeBytes(data);
 					socket.flush();
-				} catch (e:Error) {
-					ON_ERROR.dispatch(e.message);
+				} catch (ex:Error) {
+					dispatch(TCPClientEvent.ERROR, ex.message);
 					return;
 				}
 			}
 		}
 		
+		public function get connected():Boolean {
+			return socket.connected;
+		}
+		
 		//private
 		private function onIOError(e:IOErrorEvent):void {
+			dispatch(TCPClientEvent.ERROR, e.text);
 			disconnect();
-			ON_ERROR.dispatch(e.text);
 		}
 		private function onSecurityError(e:SecurityErrorEvent):void {
+			dispatch(TCPClientEvent.ERROR, e.text);
 			disconnect();
-			ON_ERROR.dispatch(e.text);
 		}
 		
 		private function onConnect(e:Event):void {
 			sending = false;
 			
-			ON_CONNECTED.dispatch();
+			dispatch(TCPClientEvent.CONNECTED);
 			sendNext();
 		}
 		private function onSocketData(e:ProgressEvent):void {
-			ON_DOWNLOAD_PROGRESS.dispatch(e.bytesLoaded, (e.target as Socket).bytesAvailable + (e.target as Socket).bytesPending);
-			if (e.bytesLoaded < (e.target as Socket).bytesAvailable + (e.target as Socket).bytesPending) {
+			dispatch(TCPClientEvent.DOWNLOAD_PROGRESS, {
+				"loaded": e.bytesLoaded,
+				"total": socket.bytesAvailable + socket.bytesPending
+			});
+			
+			if (e.bytesLoaded < socket.bytesAvailable + socket.bytesPending) {
 				return;
 			}
 			
 			var temp:ByteArray = new ByteArray();
-			(e.target as Socket).readBytes(temp);
+			socket.readBytes(temp);
 			temp.position = 0;
 			
-			ON_DATA.dispatch(temp);
+			dispatch(TCPClientEvent.DATA, temp);
 		}
 		private function onOutputProgress(e:OutputProgressEvent):void {
-			ON_UPLOAD_PROGRESS.dispatch(e.bytesTotal - e.bytesPending, e.bytesTotal);
+			dispatch(TCPClientEvent.UPLOAD_PROGRESS, {
+				"loaded": e.bytesTotal - e.bytesPending,
+				"total": e.bytesTotal
+			});
 			
 			if (e.bytesPending == 0) {
-				ON_COMPLETE.dispatch();
-				
+				dispatch(TCPClientEvent.UPLOAD_COMPLETE);
 				sending = false;
 				sendNext();
 			}
 		}
 		private function onClose(e:Event):void {
-			disconnect();
+			backlog = null;
+			dispatch(TCPClientEvent.CLOSED);
 		}
 		
 		private function sendNext():void {
-			if (!socket || backlog.length == 0) {
+			if (backlog.length == 0) {
 				return;
 			}
 			
 			send(backlog.splice(0, 1)[0]);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

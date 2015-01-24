@@ -33,7 +33,7 @@ package egg82.base {
 	
 	public class BaseSprite extends Sprite {
 		//vars
-		private const GRAPHICS:Graphics = new Graphics(this as DisplayObjectContainer);
+		private const _GRAPHICS:Graphics = new Graphics(this as DisplayObjectContainer);
 		
 		//constructor
 		public function BaseSprite() {
@@ -82,7 +82,7 @@ package egg82.base {
 		}
 		
 		public function get graphics():Graphics {
-			return GRAPHICS;
+			return _GRAPHICS;
 		}
 		
 		//private

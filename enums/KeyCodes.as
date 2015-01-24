@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package egg82.objects {
+package egg82.enums {
 	
 	/**
 	 * ...
@@ -143,22 +143,6 @@ package egg82.objects {
 		public static const F13:uint = 124;
 		public static const F14:uint = 125;
 		public static const F15:uint = 126;
-		
-		//Controller buttons
-		public static const A_BUTTON:uint = 0;
-		public static const B_BUTTON:uint = 1;
-		public static const Y_BUTTON:uint = 2;
-		public static const X_BUTTON:uint = 3;
-		public static const LEFT_BUMPER:uint = 4;
-		public static const RIGHT_BUMPER:uint = 5;
-		public static const LEFT_STICK:uint = 6;
-		public static const RIGHT_STICK:uint = 7;
-		public static const START_BUTTON:uint = 8;
-		public static const BACK_BUTTON:uint = 9;
-		public static const UP_BUTTON:uint = 10;
-		public static const LEFT_BUTTON:uint = 11;
-		public static const DOWN_BUTTON:uint = 12;
-		public static const RIGHT_BUTTON:uint = 13;
 		
 		//constructor
 		public function KeyCodes() {

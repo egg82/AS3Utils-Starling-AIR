@@ -20,30 +20,30 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.events {
 	
 	/**
 	 * ...
-	 * @author egg82
+	 * @author ...
 	 */
 	
-	public class CustomSound extends Sound {
+	public class InputEngineEvent {
 		//vars
-		private var _repeat:Boolean;
+		public static const KEY_DOWN:String = "keyDown";
+		public static const KEY_UP:String = "keyUp";
+		public static const BUTTON_DOWN:String = "buttonDown";
+		public static const BUTTON_UP:String = "buttonUp";
+		public static const MOUSE_DOWN:String = "mouseDown";
+		public static const MOUSE_UP:String = "mouseUp";
+		public static const MOUSE_MOVE:String = "mouseMove";
+		public static const MOUSE_WHEEL:String = "mouseWheel";
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function InputEngineEvent() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
-		}
 		
 		//private
 		

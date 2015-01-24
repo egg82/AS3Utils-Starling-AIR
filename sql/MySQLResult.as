@@ -20,29 +20,35 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.sql {
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class CustomSound extends Sound {
+	public class MySQLResult {
 		//vars
-		private var _repeat:Boolean;
+		private var _data:Array = null;
+		private var _rowID:Number = -1;
+		private var _rowsAffected:Number = -1;
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function MySQLResult(data:Array, rowID:Number, rowsAffected:Number) {
+			_data = data;
+			_rowID = rowID;
+			_rowsAffected = rowsAffected;
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
+		public function get data():Array {
+			return _data;
+		}
+		public function get rowID():Number {
+			return _rowID;
+		}
+		public function get rowsAffected():Number {
+			return _rowsAffected;
 		}
 		
 		//private

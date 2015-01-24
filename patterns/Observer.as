@@ -20,29 +20,56 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.patterns {
+	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
-	 * @author egg82
+	 * @author ...
 	 */
 	
-	public class CustomSound extends Sound {
+	public class Observer extends Signal {
 		//vars
-		private var _repeat:Boolean;
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function Observer() {
+			super(Object, String, Object)
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
+		public static function add(list:Vector.<Observer>, observer:Observer):void {
+			if (!list || !observer) {
+				return;
+			}
+			
+			var index:int = list.indexOf(observer);
+			
+			if (index > -1) {
+				return;
+			}
+			
+			list.push(observer);
+		}
+		public static function remove(list:Vector.<Observer>, observer:Observer):void {
+			if (!list || !observer) {
+				return;
+			}
+			
+			var index:int = list.indexOf(observer);
+			
+			if (index > -1) {
+				list.splice(index, 1);
+			}
+		}
+		
+		public static function dispatch(list:Vector.<Observer>, sender:Object, event:String, data:Object = null):void {
+			if (!list || list.length == 0) {
+				return;
+			}
+			
+			for (var i:uint = 0; i < list.length; i++) {
+				list[i].dispatch(sender, event, data);
+			}
 		}
 		
 		//private

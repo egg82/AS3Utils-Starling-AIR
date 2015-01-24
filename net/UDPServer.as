@@ -20,29 +20,27 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.net {
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class CustomSound extends Sound {
+	public class UDPServer {
 		//vars
-		private var _repeat:Boolean;
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function UDPServer() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
+		public function open(port:uint):void {
+			
+		}
+		public function close():void {
+			
 		}
 		
 		//private

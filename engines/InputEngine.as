@@ -22,6 +22,10 @@
 
 package egg82.engines {
 	import egg82.base.BaseWindow;
+	import egg82.enums.MouseEventType;
+	import egg82.events.InputEngineEvent;
+	import egg82.enums.XboxButtonCodes;
+	import egg82.patterns.Observer;
 	import flash.display.Stage;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -30,7 +34,6 @@ package egg82.engines {
 	import io.arkeus.ouya.controller.GameController;
 	import io.arkeus.ouya.controller.Xbox360Controller;
 	import io.arkeus.ouya.ControllerInput;
-	import org.osflash.signals.Signal;
 	import starling.core.Starling;
 	
 	/**
@@ -40,24 +43,10 @@ package egg82.engines {
 	
 	public class InputEngine {
 		//vars
-		public static const MOUSE_LEFT:String = "mouseLeft";
-		public static const MOUSE_MIDDLE:String = "mouseMiddle";
-		public static const MOUSE_RIGHT:String = "mouseRight";
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		public static const ON_KEY_DOWN:Signal = new Signal(Stage, uint);
-		public static const ON_KEY_UP:Signal = new Signal(Stage, uint);
-		
-		public static const ON_BUTTON_DOWN:Signal = new Signal(uint, uint);
-		public static const ON_BUTTON_UP:Signal = new Signal(uint, uint);
-		
-		public static const ON_MOUSE_DOWN:Signal = new Signal(Stage, String);
-		public static const ON_MOUSE_UP:Signal = new Signal(Stage, String);
-		public static const ON_MOUSE_MOVE:Signal = new Signal(Stage, Point, Point);
-		public static const ON_MOUSE_WHEEL:Signal = new Signal(Stage, int);
-		
-		public static const ON_ACTION:Signal = new Signal(Stage);
-		
-		private static var _keys:Vector.<Boolean> = new Vector.<Boolean>();
+		private static var keys:Vector.<Boolean> = new Vector.<Boolean>();
+		private static var xboxControllers:Vector.<Xbox360Controller> = new Vector.<Xbox360Controller>();
 		
 		private static var _mouseLocation:Point = new Point();
 		private static var _stickProperties:Point = new Point();
@@ -70,13 +59,12 @@ package egg82.engines {
 		
 		private static var _lastStage:Stage = null;
 		
-		private static var xboxControllers:Vector.<Xbox360Controller> = new Vector.<Xbox360Controller>();
 		private static var _lastUsingController:Boolean = false;
 		
 		//constructor
 		public function InputEngine() {
 			for (var i:uint = 0; i <= 255; i++) {
-				_keys.push(false);
+				keys.push(false);
 			}
 			
 			ControllerInput.initialize(Starling.all[0].nativeStage);
@@ -129,8 +117,8 @@ package egg82.engines {
 		}
 		
 		public static function isKeyDown(keyCode:uint):Boolean {
-			if (keyCode < _keys.length) {
-				return _keys[keyCode];
+			if (keyCode < keys.length) {
+				return keys[keyCode];
 			} else {
 				return false;
 			}
@@ -294,114 +282,198 @@ package egg82.engines {
 			for (i = 0; i < xboxControllers.length; i++) {
 				if (xboxControllers[i].a.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 0);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.A
+					});
 				} else if (xboxControllers[i].a.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 0);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.A
+					});
 				}
 				
 				if (xboxControllers[i].b.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 1);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.B
+					});
 				} else if (xboxControllers[i].b.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 1);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.B
+					});
 				}
 				
 				if (xboxControllers[i].y.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 2);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.Y
+					});
 				} else if (xboxControllers[i].y.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 2);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.Y
+					});
 				}
 				
 				if (xboxControllers[i].x.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 3);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.X
+					});
 				} else if (xboxControllers[i].x.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 3);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.X
+					});
 				}
 				
 				if (xboxControllers[i].lb.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 4);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT_BUMPER
+					});
 				} else if (xboxControllers[i].lb.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 4);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT_BUMPER
+					});
 				}
 				
 				if (xboxControllers[i].rb.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 5);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT_BUMPER
+					});
 				} else if (xboxControllers[i].rb.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 5);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT_BUMPER
+					});
 				}
 				
 				if (xboxControllers[i].leftStick.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 6);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT_STICK
+					});
 				} else if (xboxControllers[i].leftStick.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 6);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT_STICK
+					});
 				}
 				
 				if (xboxControllers[i].rightStick.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 7);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT_STICK
+					});
 				} else if (xboxControllers[i].rightStick.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 7);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT_STICK
+					});
 				}
 				
 				if (xboxControllers[i].start.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 8);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.START
+					});
 				} else if (xboxControllers[i].start.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 8);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.START
+					});
 				}
 				
 				if (xboxControllers[i].back.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 9);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.BACK
+					});
 				} else if (xboxControllers[i].back.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 9);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.BACK
+					});
 				}
 				
 				if (xboxControllers[i].dpad.up.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 10);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.UP
+					});
 				} else if (xboxControllers[i].dpad.up.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 10);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.UP
+					});
 				}
 				
 				if (xboxControllers[i].dpad.left.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 11);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT
+					});
 				} else if (xboxControllers[i].dpad.left.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 11);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.LEFT
+					});
 				}
 				
 				if (xboxControllers[i].dpad.down.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 12);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.DOWN
+					});
 				} else if (xboxControllers[i].dpad.down.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 12);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.DOWN
+					});
 				}
 				
 				if (xboxControllers[i].dpad.right.pressed) {
 					_lastUsingController = true;
-					ON_BUTTON_DOWN.dispatch(i, 13);
+					dispatch(InputEngineEvent.BUTTON_DOWN, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT
+					});
 				} else if (xboxControllers[i].dpad.right.released) {
 					_lastUsingController = true;
-					ON_BUTTON_UP.dispatch(i, 13);
+					dispatch(InputEngineEvent.BUTTON_UP, {
+						"controller": i,
+						"button": XboxButtonCodes.RIGHT
+					});
 				}
 			}
 		}
@@ -412,23 +484,27 @@ package egg82.engines {
 			_lastUsingController = false;
 			_lastStage = stage;
 			
-			if (_keys[e.keyCode]) {
+			if (keys[e.keyCode]) {
 				return;
 			}
 			
-			_keys[e.keyCode] = true;
-			ON_KEY_DOWN.dispatch(stage, e.keyCode);
-			ON_ACTION.dispatch(stage);
+			keys[e.keyCode] = true;
+			dispatch(InputEngineEvent.KEY_DOWN, {
+				"stage": stage,
+				"keyCode": e.keyCode
+			});
 		}
 		private static function onKeyUp(e:KeyboardEvent):void {
 			var stage:Stage = e.target as Stage;
 			
-			_keys[e.keyCode] = false;
+			keys[e.keyCode] = false;
 			_lastUsingController = false;
 			_lastStage = stage;
 			
-			ON_KEY_UP.dispatch(stage, e.keyCode);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.KEY_UP, {
+				"stage": stage,
+				"keyCode": e.keyCode
+			});
 		}
 		
 		private static function onMouseMove(e:MouseEvent):void {
@@ -437,11 +513,16 @@ package egg82.engines {
 			_lastUsingController = false;
 			_lastStage = stage;
 			
-			ON_MOUSE_MOVE.dispatch(stage, new Point(_mouseLocation.x, _mouseLocation.y), new Point(e.stageX, e.stageY));
-			ON_ACTION.dispatch(stage);
+			var oldPoint:Point = new Point(_mouseLocation.x, _mouseLocation.y);
 			
 			_mouseLocation.x = e.stageX;
 			_mouseLocation.y = e.stageY;
+			
+			dispatch(InputEngineEvent.MOUSE_MOVE, {
+				"stage": stage,
+				"oldPoint": oldPoint,
+				"newPoint": new Point(e.stageX, e.stageY)
+			});
 		}
 		private static function onMouseWheel(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
@@ -450,8 +531,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_mouseWheel = e.delta;
 			
-			ON_MOUSE_WHEEL.dispatch(stage, _mouseWheel);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_WHEEL, {
+				"stage": stage,
+				"value": _mouseWheel
+			});
 		}
 		
 		private static function onMouseDown(e:MouseEvent):void {
@@ -461,8 +544,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_leftDown = true;
 			
-			ON_MOUSE_DOWN.dispatch(stage, MOUSE_LEFT);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_DOWN, {
+				"stage": stage,
+				"type": MouseEventType.LEFT
+			});
 		}
 		private static function onMiddleMouseDown(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
@@ -471,8 +556,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_middleDown = true;
 			
-			ON_MOUSE_DOWN.dispatch(stage, MOUSE_MIDDLE);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_DOWN, {
+				"stage": stage,
+				"type": MouseEventType.MIDDLE
+			});
 		}
 		private static function onRightMouseDown(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
@@ -481,8 +568,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_rightDown = true;
 			
-			ON_MOUSE_DOWN.dispatch(stage, MOUSE_RIGHT);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_DOWN, {
+				"stage": stage,
+				"type": MouseEventType.RIGHT
+			});
 		}
 		
 		private static function onMouseUp(e:MouseEvent):void {
@@ -492,8 +581,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_leftDown = false;
 			
-			ON_MOUSE_UP.dispatch(stage, MOUSE_LEFT);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_UP, {
+				"stage": stage,
+				"type": MouseEventType.LEFT
+			});
 		}
 		private static function onMiddleMouseUp(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
@@ -502,8 +593,10 @@ package egg82.engines {
 			_lastStage = stage;
 			_middleDown = false;
 			
-			ON_MOUSE_UP.dispatch(stage, MOUSE_MIDDLE);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_UP, {
+				"stage": stage,
+				"type": MouseEventType.MIDDLE
+			});
 		}
 		private static function onRightMouseUp(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
@@ -512,8 +605,14 @@ package egg82.engines {
 			_lastStage = stage;
 			_rightDown = false;
 			
-			ON_MOUSE_UP.dispatch(stage, MOUSE_RIGHT);
-			ON_ACTION.dispatch(stage);
+			dispatch(InputEngineEvent.MOUSE_UP, {
+				"stage": stage,
+				"type": MouseEventType.RIGHT
+			});
+		}
+		
+		private static function dispatch(event:String, data:Object):void {
+			Observer.dispatch(OBSERVERS, null, event, data);
 		}
 	}
 }

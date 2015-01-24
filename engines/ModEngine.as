@@ -21,9 +21,11 @@
  */
 
 package egg82.engines {
+	import egg82.events.ModEngineEvent;
+	import egg82.events.ModEvent;
+	import egg82.patterns.Observer;
 	import flash.utils.ByteArray;
 	import egg82.mod.Mod;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -32,41 +34,31 @@ package egg82.engines {
 	
 	public class ModEngine {
 		//vars
-		public const ON_ERROR:Signal = new Signal(String, uint);
-		public const ON_PROGRESS:Signal = new Signal(Number, Number, uint);
-		public const ON_LOADED:Signal = new Signal();
-		public const ON_MESSAGE:Signal = new Signal(Object, String, uint);
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var mods:Vector.<Mod> = new Vector.<Mod>();
-		private var loaded:Vector.<Boolean> = new Vector.<Boolean>();
+		
+		private var modObserver:Observer = new Observer();
 		
 		//constructor
 		public function ModEngine() {
-			
+			modObserver.add(onModObserverNotify);
+			Observer.add(Mod.OBSERVERS, modObserver);
 		}
 		
 		//public
+		public function destroy():void {
+			Observer.remove(Mod.OBSERVERS, modObserver);
+		}
+		
 		public function load(path:String):uint {
 			mods.push(new Mod());
-			loaded.push(false);
-			
-			mods[mods.length - 1].ON_ERROR.add(onError);
-			mods[mods.length - 1].ON_PROGRESS.add(onProgress);
-			mods[mods.length - 1].ON_LOADED.add(onLoaded);
-			mods[mods.length - 1].ON_MESSAGE.add(onMessage);
 			mods[mods.length - 1].load(path);
-			
 			return mods.length - 1;
 		}
 		public function loadBytes(bytes:ByteArray):uint {
 			mods.push(new Mod());
-			loaded.push(false);
-			
-			mods[mods.length - 1].ON_ERROR.add(onError);
-			mods[mods.length - 1].ON_PROGRESS.add(onProgress);
-			mods[mods.length - 1].ON_LOADED.add(onLoaded);
 			mods[mods.length - 1].loadBytes(bytes);
-			
 			return mods.length - 1;
 		}
 		public function unload(mod:uint):void {
@@ -74,14 +66,8 @@ package egg82.engines {
 				return;
 			}
 			
-			mods[mod].ON_ERROR.removeAll();
-			mods[mod].ON_LOADED.removeAll();
-			mods[mod].ON_MESSAGE.removeAll();
-			mods[mod].ON_PROGRESS.removeAll();
-			
 			mods[mod].unload();
 			mods.splice(mod, 1);
-			loaded.splice(mod, 1);
 		}
 		
 		public function createChannel(name:String):void {
@@ -94,58 +80,88 @@ package egg82.engines {
 				mods[i].removeChannel(name);
 			}
 		}
-		public function sendMessage(obj:Object, mod:uint, channel:String):void {
+		public function sendMessage(mod:uint, channel:String, data:Object):void {
 			if (mod >= mods.length) {
 				return;
 			}
 			
-			mods[mod].sendMessage(obj, channel);
+			mods[mod].sendMessage(channel, data);
 		}
 		
+		public function getMod(index:uint):Mod {
+			if (index >= mods.length) {
+				return null;
+			}
+			
+			return mods[index];
+		}
+		public function getIndex(mod:Mod):int {
+			for (var i:uint = 0; i < mods.length; i++) {
+				if (mods[i] === mod) {
+					return i;
+				}
+			}
+			
+			return -1;
+		}
 		public function get numMods():uint {
 			return mods.length;
 		}
 		
 		//private
-		private function onError(error:String, mod:Mod):void {
+		private function onModObserverNotify(sender:Object, event:String, data:Object):void {
+			var senderIndex:int = -1;
+			
 			for (var i:uint = 0; i < mods.length; i++) {
-				if (mod === mods[i]) {
-					ON_ERROR.dispatch(error, i);
+				if (sender === mods[i]) {
+					senderIndex = i;
 					break;
-				}
-			}
-		}
-		private function onProgress(loaded:Number, total:Number, mod:Mod):void {
-			for (var i:uint = 0; i < mods.length; i++) {
-				if (mod === mods[i]) {
-					ON_PROGRESS.dispatch(loaded, total, i);
-					break;
-				}
-			}
-		}
-		private function onLoaded(mod:Mod):void {
-			var allLoaded:Boolean = true;
-			for (var i:uint = 0; i < mods.length; i++) {
-				if (mod === mods[i]) {
-					loaded[i] = true;
-				}
-				
-				if (!loaded[i]) {
-					allLoaded = false;
 				}
 			}
 			
-			if (allLoaded) {
-				ON_LOADED.dispatch();
+			if (senderIndex < 0) {
+				return;
+			}
+			
+			if (event == ModEvent.MESSAGE) {
+				dispatch(ModEngineEvent.MOD_MESSAGE, {
+					"mod": senderIndex,
+					"channel": data.channel,
+					"data": data.data
+				});
+			} else if (event == ModEvent.PROGRESS) {
+				dispatch(ModEngineEvent.MOD_PROGRESS, {
+					"mod": senderIndex,
+					"loaded": data.loaded,
+					"total": data.total
+				});
+			} else if (event == ModEvent.LOADED) {
+				dispatch(ModEngineEvent.MOD_LOADED, senderIndex);
+				checkLoaded();
+			} else if (event == ModEvent.ERROR) {
+				dispatch(ModEngineEvent.MOD_ERROR, {
+					"mod": senderIndex,
+					"error": data.error
+				});
+			} else if (event == ModEvent.TERMINATED) {
+				dispatch(ModEngineEvent.MOD_TERMINATED, {
+					"mod": senderIndex
+				});
 			}
 		}
-		private function onMessage(obj:Object, channel:String, mod:Mod):void {
+		
+		private function checkLoaded():void {
 			for (var i:uint = 0; i < mods.length; i++) {
-				if (mod === mods[i]) {
-					ON_MESSAGE.dispatch(obj, channel, i);
-					break;
+				if (!mods[i].loaded) {
+					return;
 				}
 			}
+			
+			dispatch(ModEngineEvent.LOADED);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

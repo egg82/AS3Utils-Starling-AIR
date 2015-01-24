@@ -20,62 +20,54 @@
  * THE SOFTWARE.
  */
 
-package egg82.commands {
+package egg82.patterns.command {
+	import flash.events.TimerEvent;
+	import flash.utils.Timer;
+	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
 	 * @author ...
 	 */
 	
-	public class ParallelCommand extends Command {
+	public class Command {
 		//vars
-		private var commands:Array;
-		private var completed:uint;
-		private var total:uint;
+		public const ON_COMPLETE:Signal = new Signal(Object, Object);
+		
+		private var timer:Timer;
 		
 		//constructor
-		public function ParallelCommand(delay:Number = 0, ...commands) {
-			super(delay);
-			this.commands = commands;
-		}
-		
-		//public
-		
-		//private
-		override protected function execute():void {
-			if (!commands || commands.length == 0) {
-				ON_COMPLETE.dispatch(this, null);
+		public function Command(delay:Number = 0) {
+			if (delay <= 0) {
 				return;
 			}
 			
-			total = 0;
-			completed = 0;
-			
-			for each (var obj:Object in commands) {
-				total++;
-				
-				if (!(obj is Command)) {
-					completed++;
-					continue;
-				}
-				
-				var command:Command = obj as Command;
-				
-				command.ON_COMPLETE.addOnce(onComplete);
-				command.start();
+			if (delay < 17) {
+				delay = 17;
 			}
 			
-			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
-			}
+			timer = new Timer(delay, 1);
+			timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
 		}
 		
-		private function onComplete(sender:Object, data:Object):void {
-			completed++;
-			
-			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
+		//public
+		public function start():void {
+			if (timer) {
+				timer.start();
+				return;
 			}
+			
+			execute();
+		}
+		
+		//private
+		protected function execute():void {
+			ON_COMPLETE.dispatch(this, null);
+		}
+		
+		private function onTimer(e:TimerEvent):void {
+			timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
+			execute();
 		}
 	}
 }

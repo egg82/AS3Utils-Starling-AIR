@@ -42,18 +42,18 @@ package egg82.engines {
 		public static var drawFPS:Number = 60.0;
 		public static var useTimestep:Boolean = true;
 		
-		private static var _states:Vector.<Vector.<BaseState>> = new Vector.<Vector.<BaseState>>();
-		private static var _windows:Vector.<BaseWindow> = new Vector.<BaseWindow>();
-		private static var _updateTimer:Timer = new Timer((1.0 / updateFPS) * 1000.0);
-		private static var _drawTimer:Timer = new Timer((1.0 / drawFPS) * 1000.0);
-		private static var _runOnce:Boolean;
+		private static var states:Vector.<Vector.<BaseState>> = new Vector.<Vector.<BaseState>>();
+		private static var windows:Vector.<BaseWindow> = new Vector.<BaseWindow>();
+		private static var updateTimer:Timer = new Timer((1.0 / updateFPS) * 1000.0);
+		private static var drawTimer:Timer = new Timer((1.0 / drawFPS) * 1000.0);
+		private static var runOnce:Boolean;
 		
 		private static var _deltaTime:Number = 0;
-		private static var _lastUpdateTime:Number = getTimer();
-		private static var _timestep:Number = updateFPS;
-		private static var _fixedTimestepAccumulator:Number;
+		private static var lastUpdateTime:Number = getTimer();
+		private static var timestep:Number = updateFPS;
+		private static var fixedTimestepAccumulator:Number;
 		
-		private static var _inits:Vector.<BaseState> = new Vector.<BaseState>();
+		private static var inits:Vector.<BaseState> = new Vector.<BaseState>();
 		
 		//constructor
 		public function StateEngine(initState:BaseState) {
@@ -61,12 +61,12 @@ package egg82.engines {
 				throw new Error("initState cannot be null");
 			}
 			
-			_runOnce = false;
+			runOnce = false;
 			
 			Starling.all[0].stage.addEventListener(ResizeEvent.RESIZE, onResize);
 			
-			_fixedTimestepAccumulator = 0;
-			_timestep = StateEngine.updateFPS;
+			fixedTimestepAccumulator = 0;
+			timestep = StateEngine.updateFPS;
 			
 			addWindow(null, initState);
 			Starling.all[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
@@ -74,133 +74,133 @@ package egg82.engines {
 		
 		//public
 		public static function addState(newState:BaseState, window:uint = 0, addAt:uint = 0):void {
-			if (!newState || window >= _windows.length || addAt > _states[window].length) {
+			if (!newState || window >= windows.length || addAt > states[window].length) {
 				return;
 			}
 			
 			if (Starling.all[0].context) {
-				_updateTimer.stop();
-				_drawTimer.stop();
+				updateTimer.stop();
+				drawTimer.stop();
 			}
 			
-			_runOnce = false;
+			runOnce = false;
 			
-			for (var i:uint = 0; i < _states[window].length; i++) {
-				_states[window][i].touchable = false;
+			for (var i:uint = 0; i < states[window].length; i++) {
+				states[window][i].touchable = false;
 			}
 			
-			_states[window].splice(addAt, 0, newState);
+			states[window].splice(addAt, 0, newState);
 			
-			if (_windows[window]) {
-				_windows[window].starling.stage.addChild(newState);
+			if (windows[window]) {
+				windows[window].starling.stage.addChild(newState);
 			} else {
 				Starling.all[0].stage.addChild(newState);
 			}
 			
-			newState.window = _windows[window];
+			newState.window = windows[window];
 			newState.create();
 			InputEngine.update();
 			newState.update();
 			newState.draw();
 			
 			if (Starling.all[0].context) {
-				_updateTimer.start();
-				_drawTimer.start();
+				updateTimer.start();
+				drawTimer.start();
 			}
 		}
 		public static function swapStates(newState:BaseState, window:uint = 0, swapAt:uint = 0):void {
 			var oldState:BaseState;
 			
-			if (!newState || window >= _windows.length || swapAt >= _states[window].length) {
+			if (!newState || window >= windows.length || swapAt >= states[window].length) {
 				return;
 			}
 			
 			if (Starling.all[0].context) {
-				_updateTimer.stop();
-				_drawTimer.stop();
+				updateTimer.stop();
+				drawTimer.stop();
 			}
 			
-			_runOnce = false;
+			runOnce = false;
 			
-			oldState = _states[window].splice(swapAt, 1)[0];
+			oldState = states[window].splice(swapAt, 1)[0];
 			oldState.destroy();
 			
-			if (_windows[window]) {
-				_windows[window].starling.stage.removeChild(oldState);
+			if (windows[window]) {
+				windows[window].starling.stage.removeChild(oldState);
 			} else {
 				Starling.all[0].stage.removeChild(oldState);
 			}
 			
-			_states[window].splice(swapAt, 0, newState);
+			states[window].splice(swapAt, 0, newState);
 			
-			if (_windows[window]) {
-				_windows[window].starling.stage.addChild(newState);
+			if (windows[window]) {
+				windows[window].starling.stage.addChild(newState);
 			} else {
 				Starling.all[0].stage.addChild(newState);
 			}
 			
-			newState.window = _windows[window];
+			newState.window = windows[window];
 			newState.create();
 			InputEngine.update();
 			newState.update();
 			newState.draw();
 			
 			if (Starling.all[0].context) {
-				_updateTimer.start();
-				_drawTimer.start();
+				updateTimer.start();
+				drawTimer.start();
 			}
 		}
 		public static function removeState(index:uint, window:uint = 0):void {
 			var state:BaseState;
 			
-			if (window >= _windows.length || index >= _states[window].length) {
+			if (window >= windows.length || index >= states[window].length) {
 				return;
 			}
 			
-			state = _states[window].splice(index, 1)[0];
+			state = states[window].splice(index, 1)[0];
 			state.destroy();
 			
-			if (_windows[window]) {
-				_windows[window].starling.stage.removeChild(state);
+			if (windows[window]) {
+				windows[window].starling.stage.removeChild(state);
 			} else {
 				Starling.all[0].stage.removeChild(state);
 			}
 			
-			if (_states[window].length > 0) {
-				_states[window][0].touchable = true;
+			if (states[window].length > 0) {
+				states[window][0].touchable = true;
 			}
 		}
 		
 		public static function getState(index:uint, window:uint = 0):BaseState {
-			if (window >= _windows.length || index >= _states[window].length) {
+			if (window >= windows.length || index >= states[window].length) {
 				return null;
 			}
 			
-			return _states[window][index];
+			return states[window][index];
 		}
 		public static function numStates(window:uint = 0):uint {
-			if (window >= _windows.length) {
+			if (window >= windows.length) {
 				return 0;
 			}
 			
-			return _states[window].length as uint;
+			return states[window].length as uint;
 		}
 		
 		public static function addWindow(window:BaseWindow, initState:BaseState):void {
-			if ((!window && _windows.length > 0) || !initState) {
+			if ((!window && windows.length > 0) || !initState) {
 				return;
 			}
 			
 			if (Starling.all[0].context) {
-				_updateTimer.stop();
-				_drawTimer.stop();
+				updateTimer.stop();
+				drawTimer.stop();
 			}
 			
-			_runOnce = false;
+			runOnce = false;
 			
-			_windows.push(window);
-			_states.push(new Vector.<BaseState>);
-			_inits.push(initState);
+			windows.push(window);
+			states.push(new Vector.<BaseState>);
+			inits.push(initState);
 			
 			if (window) {
 				InputEngine.addWindow(window);
@@ -214,22 +214,22 @@ package egg82.engines {
 		}
 		public static function removeWindow(index:uint):void {
 			var window:BaseWindow;
-			var states:Vector.<BaseState>;
+			var tStates:Vector.<BaseState>;
 			var init:BaseState;
 			
-			if (index >= _windows.length || index == 0) {
+			if (index >= windows.length || index == 0) {
 				return;
 			}
 			
-			window = _windows.splice(index, 1)[0];
-			states = _states.splice(index, 1)[0];
-			init = _inits.splice(index, 1)[0];
+			window = windows.splice(index, 1)[0];
+			tStates = states.splice(index, 1)[0];
+			init = inits.splice(index, 1)[0];
 			
 			window.starling.stage.removeEventListener(ResizeEvent.RESIZE, onWindowResize);
 			
-			for (var i:uint = 0; i < states.length; i++) {
-				states[i].destroy();
-				window.starling.stage.removeChild(states[i]);
+			for (var i:uint = 0; i < tStates.length; i++) {
+				tStates[i].destroy();
+				window.starling.stage.removeChild(tStates[i]);
 			}
 			if (init) {
 				init.destroy();
@@ -243,14 +243,14 @@ package egg82.engines {
 		}
 		
 		public static function getWindow(index:uint):BaseWindow {
-			if (index >= _windows.length) {
+			if (index >= windows.length) {
 				return null;
 			}
 			
-			return _windows[index];
+			return windows[index];
 		}
 		public static function get numWindows():uint {
-			return _windows.length as uint;
+			return windows.length as uint;
 		}
 		
 		public static function get deltaTime():Number {
@@ -258,12 +258,12 @@ package egg82.engines {
 		}
 		
 		public static function resize(window:uint = 0):void {
-			if (window >= _windows.length) {
+			if (window >= windows.length) {
 				return;
 			}
 			
-			if (_windows[window]) {
-				_windows[window].starling.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, _windows[window].starling.nativeStage.stageWidth, _windows[window].starling.nativeStage.stageHeight));
+			if (windows[window]) {
+				windows[window].starling.stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, windows[window].starling.nativeStage.stageWidth, windows[window].starling.nativeStage.stageHeight));
 			} else {
 				Starling.all[0].stage.dispatchEvent(new ResizeEvent(ResizeEvent.RESIZE, Starling.all[0].nativeStage.stageWidth, Starling.all[0].nativeStage.stageHeight));
 			}
@@ -279,37 +279,37 @@ package egg82.engines {
 				return;
 			}
 			
-			if (!_runOnce) {
-				for (i = 0; i < _states.length; i++) {
-					_states[i][0].runOnce();
+			if (!runOnce) {
+				for (i = 0; i < states.length; i++) {
+					states[i][0].runOnce();
 				}
-				_runOnce = true;
+				runOnce = true;
 			}
 			
 			time = getTimer();
 			
-			_deltaTime = time - _lastUpdateTime;
-			_lastUpdateTime = time;
+			_deltaTime = time - lastUpdateTime;
+			lastUpdateTime = time;
 			
 			if (updateFPS < 0) {
-				_updateTimer.delay = (1.0 / 60) * 1000.0;
+				updateTimer.delay = (1.0 / 60) * 1000.0;
 			} else {
-				_updateTimer.delay = (1.0 / updateFPS) * 1000.0;
+				updateTimer.delay = (1.0 / updateFPS) * 1000.0;
 			}
 			
 			steps = calculateSteps();
 			
 			InputEngine.update();
 			
-			for (i = 0; i < _states.length; i++) {
-				for (var j:uint = 0; j < _states[i].length; j++) {
-					if (j == 0 || _states[i][j].forceUpdate) {
+			for (i = 0; i < states.length; i++) {
+				for (var j:uint = 0; j < states[i].length; j++) {
+					if (j == 0 || states[i][j].forceUpdate) {
 						if (useTimestep) {
 							for (var k:uint = 0; k < steps; k++) {
-								_states[i][j].update();
+								states[i][j].update();
 							}
 						} else {
-							_states[i][j].update();
+							states[i][j].update();
 						}
 					}
 				}
@@ -321,15 +321,15 @@ package egg82.engines {
 			}
 			
 			if (drawFPS < 0) {
-				_drawTimer.delay = (1.0 / 60) * 1000.0;
+				drawTimer.delay = (1.0 / 60) * 1000.0;
 			} else {
-				_drawTimer.delay = (1.0 / drawFPS) * 1000.0;
+				drawTimer.delay = (1.0 / drawFPS) * 1000.0;
 			}
 			
-			for (var i:uint = 0; i < _states.length; i++) {
-				for (var j:uint = 0; j < _states[i].length; j++) {
-					if (j == 0 || _states[i][j].forceUpdate) {
-						_states[i][j].draw();
+			for (var i:uint = 0; i < states.length; i++) {
+				for (var j:uint = 0; j < states[i].length; j++) {
+					if (j == 0 || states[i][j].forceUpdate) {
+						states[i][j].draw();
 					}
 				}
 			}
@@ -338,11 +338,11 @@ package egg82.engines {
 		private static function calculateSteps():uint {
 			var steps:uint;
 			
-			_fixedTimestepAccumulator += _deltaTime / 1000;
-			steps = Math.floor(_fixedTimestepAccumulator / (1 / _timestep));
+			fixedTimestepAccumulator += _deltaTime / 1000;
+			steps = Math.floor(fixedTimestepAccumulator / (1 / timestep));
 			
 			if (steps > 0) {
-				_fixedTimestepAccumulator -= steps * (1 / _timestep);
+				fixedTimestepAccumulator -= steps * (1 / timestep);
 			}
 			
 			return steps;
@@ -355,8 +355,8 @@ package egg82.engines {
 			Starling.all[0].stage.stageWidth = e.width;
 			Starling.all[0].stage.stageHeight = e.height;
 			
-			for (var i:uint = 0; i < _states[0].length; i++) {
-				_states[0][i].resize();
+			for (var i:uint = 0; i < states[0].length; i++) {
+				states[0][i].resize();
 			}
 		}
 		private static function onWindowResize(e:ResizeEvent):void {
@@ -364,8 +364,8 @@ package egg82.engines {
 			var window:uint = 0;
 			var i:uint;
 			
-			for (i = 0; i < _windows.length; i++) {
-				if (_windows[i] && _windows[i].starling.stage === stage) {
+			for (i = 0; i < windows.length; i++) {
+				if (windows[i] && windows[i].starling.stage === stage) {
 					window = i;
 					break;
 				}
@@ -374,29 +374,29 @@ package egg82.engines {
 				return;
 			}
 			
-			_windows[window].starling.viewPort.width = e.width;
-			_windows[window].starling.viewPort.height = e.height;
+			windows[window].starling.viewPort.width = e.width;
+			windows[window].starling.viewPort.height = e.height;
 			
-			_windows[window].starling.stage.stageWidth = e.width;
-			_windows[window].starling.stage.stageHeight = e.height;
+			windows[window].starling.stage.stageWidth = e.width;
+			windows[window].starling.stage.stageHeight = e.height;
 			
-			for (i = 0; i < _states[window].length; i++) {
-				_states[window][i].resize();
+			for (i = 0; i < states[window].length; i++) {
+				states[window][i].resize();
 			}
 		}
 		
 		private static function onContextCreated(e:Event):void {
 			Starling.all[0].removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 			
-			addState(_inits[0]);
-			_inits[0] = null;
+			addState(inits[0]);
+			inits[0] = null;
 			
 			resize();
 			
-			_updateTimer.addEventListener(TimerEvent.TIMER, onUpdate);
-			_drawTimer.addEventListener(TimerEvent.TIMER, onDraw);
-			_updateTimer.start();
-			_drawTimer.start();
+			updateTimer.addEventListener(TimerEvent.TIMER, onUpdate);
+			drawTimer.addEventListener(TimerEvent.TIMER, onDraw);
+			updateTimer.start();
+			drawTimer.start();
 		}
 		private static function onWindowContextCreated(e:Event):void {
 			var starling:Starling = e.target as Starling;
@@ -408,8 +408,8 @@ package egg82.engines {
 			
 			starling.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 			
-			for (var i:uint = 0; i < _windows.length; i++) {
-				if (_windows[i] && _windows[i].starling === starling) {
+			for (var i:uint = 0; i < windows.length; i++) {
+				if (windows[i] && windows[i].starling === starling) {
 					window = i;
 					break;
 				}
@@ -418,14 +418,14 @@ package egg82.engines {
 				return;
 			}
 			
-			addState(_inits[window], window);
-			_inits[window] = null;
+			addState(inits[window], window);
+			inits[window] = null;
 			
 			resize(window);
 			
 			if (Starling.all[0].context) {
-				_updateTimer.start();
-				_drawTimer.start();
+				updateTimer.start();
+				drawTimer.start();
 			}
 		}
 	}

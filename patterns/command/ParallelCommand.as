@@ -20,21 +20,21 @@
  * THE SOFTWARE.
  */
 
-package egg82.commands {
+package egg82.patterns.command {
 	
 	/**
 	 * ...
 	 * @author ...
 	 */
 	
-	public class SerialCommand extends Command {
+	public class ParallelCommand extends Command {
 		//vars
 		private var commands:Array;
 		private var completed:uint;
 		private var total:uint;
 		
 		//constructor
-		public function SerialCommand(delay:Number = 0, ...commands) {
+		public function ParallelCommand(delay:Number = 0, ...commands) {
 			super(delay);
 			this.commands = commands;
 		}
@@ -51,8 +51,6 @@ package egg82.commands {
 			total = 0;
 			completed = 0;
 			
-			var started:Boolean = false;
-			
 			for each (var obj:Object in commands) {
 				total++;
 				
@@ -61,14 +59,10 @@ package egg82.commands {
 					continue;
 				}
 				
-				if (!started) {
-					var command:Command = obj as Command;
-					
-					started = true;
-					
-					command.ON_COMPLETE.addOnce(onComplete);
-					command.start();
-				}
+				var command:Command = obj as Command;
+				
+				command.ON_COMPLETE.addOnce(onComplete);
+				command.start();
 			}
 			
 			if (completed == total) {
@@ -78,34 +72,6 @@ package egg82.commands {
 		
 		private function onComplete(sender:Object, data:Object):void {
 			completed++;
-			
-			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
-			}
-			
-			var i:uint = 0;
-			
-			for each (var obj:Object in commands) {
-				if (i < completed) {
-					i++;
-					continue;
-				}
-				
-				if (!(obj is Command)) {
-					completed++;
-					i++;
-					continue;
-				}
-				
-				var command:Command = obj as Command;
-				
-				started = true;
-				
-				command.ON_COMPLETE.addOnce(onComplete);
-				command.start();
-				
-				return;
-			}
 			
 			if (completed == total) {
 				ON_COMPLETE.dispatch(this, null);

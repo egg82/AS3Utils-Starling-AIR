@@ -23,6 +23,7 @@
 package egg82.objects {
 	import com.hurlant.crypto.Crypto;
 	import com.hurlant.crypto.hash.MD5;
+	import com.hurlant.crypto.hash.SHA1;
 	import com.hurlant.crypto.symmetric.ICipher;
 	import com.hurlant.crypto.symmetric.IPad;
 	import com.hurlant.crypto.symmetric.NullPad;
@@ -37,7 +38,8 @@ package egg82.objects {
 	
 	public class CryptoUtil {
 		//vars
-		private static var _md5:MD5 = new MD5();
+		private static var md5:MD5 = new MD5();
+		private static var sha1:SHA1 = new SHA1();
 		
 		//constructor
 		public function CryptoUtil() {
@@ -56,8 +58,11 @@ package egg82.objects {
 			return input.readUTFBytes(input.length);
 		}
 		
-		public static function md5(input:String):String {
-			return Hex.fromArray(_md5.hash(Hex.toArray(Hex.fromString(input))));
+		public static function hashMd5(input:String):String {
+			return Hex.fromArray(md5.hash(Hex.toArray(Hex.fromString(input))));
+		}
+		public static function hashSha1(input:String):String {
+			return Hex.fromArray(sha1.hash(Hex.toArray(Hex.fromString(input))));
 		}
 		
 		public static function encode(input:ByteArray):ByteArray {

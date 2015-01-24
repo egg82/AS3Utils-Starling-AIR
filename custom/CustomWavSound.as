@@ -34,23 +34,15 @@ package egg82.custom {
 	
 	public class CustomWavSound extends WavSound {
 		//vars
-		public var id:uint;
-		
-		private var _name:String;
 		private var _repeat:Boolean;
 		
 		//constructor
-		public function CustomWavSound(name:String, repeat:Boolean, wavData:ByteArray, audioSettings:AudioSetting = null) {
-			_name = name;
+		public function CustomWavSound(wavData:ByteArray, repeat:Boolean, audioSettings:AudioSetting = null) {
 			_repeat = repeat;
-			
 			super(wavData, audioSettings);
 		}
 		
 		//public
-		public function get name():String {
-			return _name;
-		}
 		public function get repeat():Boolean {
 			return _repeat;
 		}

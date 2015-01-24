@@ -21,6 +21,7 @@
  */
 
 package egg82.base {
+	import egg82.patterns.Observer;
 	import starling.core.Starling;
 	
 	/**
@@ -30,6 +31,8 @@ package egg82.base {
 	
 	public class BaseState extends BaseSprite {
 		//vars
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
+		
 		public var forceUpdate:Boolean = false;
 		private var _window:BaseWindow = null;
 		
@@ -53,6 +56,8 @@ package egg82.base {
 		}
 		
 		//private
-		
+		protected final function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
+		}
 	}
 }

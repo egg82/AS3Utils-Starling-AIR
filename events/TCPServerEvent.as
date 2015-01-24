@@ -20,30 +20,32 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.events {
 	
 	/**
 	 * ...
-	 * @author egg82
+	 * @author ...
 	 */
 	
-	public class CustomSound extends Sound {
+	public class TCPServerEvent {
 		//vars
-		private var _repeat:Boolean;
+		public static const ERROR:String = "error";
+		public static const OPENED:String = "opened";
+		public static const CLOSED:String = "closed";
+		public static const CONNECTION:String = "connection";
+		public static const CLIENT_ERROR:String = "clientError";
+		public static const CLIENT_CLOSED:String = "clientClosed";
+		public static const CLIENT_CONNECTED:String = "clientConnected";
+		public static const CLIENT_UPLOAD_PROGRESS:String = "clientUploadProgress";
+		public static const CLIENT_DOWNLOAD_PROGRESS:String = "clientDownloadProgress";
+		public static const CLIENT_DATA:String = "clientData";
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function TCPServerEvent() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
-		}
 		
 		//private
 		

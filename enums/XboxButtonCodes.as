@@ -20,30 +20,36 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.enums {
 	
 	/**
 	 * ...
-	 * @author egg82
+	 * @author ...
 	 */
 	
-	public class CustomSound extends Sound {
+	public class XboxButtonCodes {
 		//vars
-		private var _repeat:Boolean;
+		public static const A:uint = 0;
+		public static const B:uint = 1;
+		public static const Y:uint = 2;
+		public static const X:uint = 3;
+		public static const LEFT_BUMPER:uint = 4;
+		public static const RIGHT_BUMPER:uint = 5;
+		public static const LEFT_STICK:uint = 6;
+		public static const RIGHT_STICK:uint = 7;
+		public static const START:uint = 8;
+		public static const BACK:uint = 9;
+		public static const UP:uint = 10;
+		public static const LEFT:uint = 11;
+		public static const DOWN:uint = 12;
+		public static const RIGHT:uint = 13;
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function XboxButtonCodes() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
-		}
 		
 		//private
 		

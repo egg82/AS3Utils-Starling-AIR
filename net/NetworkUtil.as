@@ -20,29 +20,47 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.net {
+	import flash.system.Security;
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class CustomSound extends Sound {
+	public class NetworkUtil {
 		//vars
-		private var _repeat:Boolean;
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function NetworkUtil() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
+		public static function loadPolicyFile(host:String, port:uint):void {
+			if (port > 65535) {
+				return;
+			}
+			
+			try {
+				Security.allowDomain(host);
+				Security.allowInsecureDomain(host);
+			} catch (ex:Error) {
+				
+			}
+			
+			if (host.search("://") > -1) {
+				Security.loadPolicyFile(host + ":" + port);
+				Security.loadPolicyFile(host + ":" + port + "/crossdomain.xml");
+			} else {
+				Security.loadPolicyFile("xmlsocket://" + host + ":" + port);
+				Security.loadPolicyFile("https://" + host + ":" + port);
+				Security.loadPolicyFile("http://" + host + ":" + port);
+				
+				Security.loadPolicyFile("xmlsocket://" + host + ":" + port + "/crossdomain.xml");
+				Security.loadPolicyFile("https://" + host + ":" + port + "/crossdomain.xml");
+				Security.loadPolicyFile("http://" + host + ":" + port + "/crossdomain.xml");
+			}
 		}
 		
 		//private

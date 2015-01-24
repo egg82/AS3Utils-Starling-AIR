@@ -21,11 +21,12 @@
  */
 
 package egg82.base {
+	import egg82.events.BasePreloaderEvent;
+	import egg82.patterns.Observer;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.ProgressEvent;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -34,13 +35,12 @@ package egg82.base {
 	
 	public class BasePreloader extends Sprite {
 		//vars
-		public const ON_PROGRESS:Signal = new Signal(Number, Number);
-		public const ON_COMPLETE:Signal = new Signal();
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var _loaded:Number = 0;
 		private var _total:Number = 0;
 		
-		private var _main:Class;
+		private var main:Class;
 		
 		//constructor
 		public function BasePreloader(main:Class) {
@@ -51,7 +51,7 @@ package egg82.base {
 			loaderInfo.addEventListener(ProgressEvent.PROGRESS, onProgress);
 			loaderInfo.addEventListener(Event.COMPLETE, onComplete);
 			
-			_main = main;
+			this.main = main;
 		}
 		
 		//public
@@ -67,11 +67,18 @@ package egg82.base {
 			_loaded = e.bytesLoaded;
 			_total = e.bytesTotal;
 			
-			ON_PROGRESS.dispatch(_loaded, _total);
+			dispatch(BasePreloaderEvent.PROGRESS, {
+				"loaded": _loaded,
+				"total": _total
+			});
 		}
 		private function onComplete(e:Event):void {
-			ON_COMPLETE.dispatch();
-			addChild(new _main() as DisplayObject);
+			dispatch(BasePreloaderEvent.COMPLETE);
+			addChild(new main() as DisplayObject);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

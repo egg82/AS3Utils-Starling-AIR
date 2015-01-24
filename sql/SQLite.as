@@ -21,7 +21,9 @@
  */
 
 package egg82.sql {
+	import egg82.events.SQLiteEvent;
 	import egg82.objects.CryptoUtil;
+	import egg82.patterns.Observer;
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
 	import flash.data.SQLResult;
@@ -30,7 +32,6 @@ package egg82.sql {
 	import flash.events.SQLEvent;
 	import flash.filesystem.File;
 	import flash.utils.ByteArray;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -39,42 +40,40 @@ package egg82.sql {
 	
 	public class SQLite {
 		//vars
-		public const ON_ERROR:Signal = new Signal(String, Object);
-		public const ON_CONNECT:Signal = new Signal();
-		public const ON_DISCONNECT:Signal = new Signal();
-		public const ON_RESULT:Signal = new Signal(SQLResult, Object);
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var file:File;
-		private var connection:SQLConnection;
+		private var connection:SQLConnection = new SQLConnection();
 		private var backlog:Vector.<String>;
 		private var backlogData:Vector.<Object>;
 		private var statement:SQLStatement;
+		private var sending:Boolean;
 		
 		//constructor
 		public function SQLite() {
-			
+			connection.addEventListener(SQLErrorEvent.ERROR, onConnectionError);
+			connection.addEventListener(SQLEvent.OPEN, onOpen);
+			connection.addEventListener(SQLEvent.CLOSE, onClose);
 		}
 		
 		//public
 		public function connect(dbPath:String, compact:Boolean = true, pass:String = null, passEncryptionKey:String = null):void {
-			if (connection) {
-				disconnect();
+			if (!dbPath || dbPath == "" || connection.connected) {
+				return;
 			}
+			
+			sending = true;
 			
 			file = new File(dbPath);
 			
-			if (file.exists && file.isDirectory) {
-				file.deleteDirectory(true);
+			if (!file.exists || file.isDirectory) {
+				return;
 			}
-			
-			connection = new SQLConnection();
-			backlog = new Vector.<String>();
-			backlogData = new Vector.<Object>();
 			
 			var key:ByteArray = null;
 			if (pass && pass != "") {
 				if (passEncryptionKey) {
-					key = CryptoUtil.encryptAes(CryptoUtil.toArray(pass), CryptoUtil.md5(passEncryptionKey));
+					key = CryptoUtil.encryptAes(CryptoUtil.toArray(pass), CryptoUtil.hashMd5(passEncryptionKey));
 				} else {
 					key = CryptoUtil.toArray(pass);
 				}
@@ -87,13 +86,13 @@ package egg82.sql {
 				}
 			}
 			
-			connection.addEventListener(SQLErrorEvent.ERROR, onSQLError);
-			connection.addEventListener(SQLEvent.OPEN, onOpen);
-			connection.addEventListener(SQLEvent.CLOSE, onClose);
 			connection.openAsync(file, SQLMode.CREATE, null, compact, 1024, key);
+			
+			backlog = new Vector.<String>();
+			backlogData = new Vector.<Object>();
 		}
 		public function disconnect():void {
-			if (!connection) {
+			if (!connection.connected) {
 				return;
 			}
 			
@@ -103,21 +102,24 @@ package egg82.sql {
 			
 			connection.close();
 			statement = null;
-			connection = null;
 			backlog = null;
 			backlogData = null;
 			file = null;
+			
+			dispatch(SQLiteEvent.DISCONNECTED);
 		}
 		
 		public function query(q:String, data:Object = null):void {
-			if (!q || q == "") {
+			if (!connection.connected || !q || q == "") {
 				return;
 			}
 			
-			if (!connection.connected || connection.inTransaction) {
+			if (sending || backlog.length > 0) {
 				backlog.push(query);
 				backlogData.push(data);
 			} else {
+				sending = true;
+				
 				backlogData.unshift(data);
 				
 				statement = new SQLStatement();
@@ -130,40 +132,63 @@ package egg82.sql {
 			}
 		}
 		public function get connected():Boolean {
-			return (connection) ? connection.connected : false;
+			return connection.connected;
 		}
 		
 		//private
+		private function onConnectionError(e:SQLErrorEvent):void {
+			dispatch(SQLiteEvent.ERROR, {
+				"error": e.error.message + File.lineEnding + "\tDetails: " + e.error.details,
+				"data": null
+			});
+			disconnect();
+		}
 		private function onSQLError(e:SQLErrorEvent):void {
-			if (!connection) {
-				return;
-			}
-			
-			ON_ERROR.dispatch(e.error.message + File.lineEnding + "\tDetails: " + e.error.details, (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
+			dispatch(SQLiteEvent.ERROR, {
+				"error": e.error.message + File.lineEnding + "\tDetails: " + e.error.details,
+				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+			});
 		}
 		private function onOpen(e:SQLEvent):void {
+			sending = false;
+			
+			dispatch(SQLiteEvent.CONNECTED);
 			sendNext();
-			ON_CONNECT.dispatch();
 		}
 		private function onClose(e:SQLEvent):void {
-			disconnect();
-			ON_DISCONNECT.dispatch();
-		}
-		private function onResult(e:SQLEvent):void {
-			if (!connection) {
-				return;
+			if (statement) {
+				statement.cancel();
 			}
 			
-			ON_RESULT.dispatch(statement.getResult(), (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
+			statement = null;
+			backlog = null;
+			backlogData = null;
+			file = null;
+			
+			dispatch(SQLiteEvent.DISCONNECTED);
+		}
+		private function onResult(e:SQLEvent):void {
+			var result:SQLResult = statement.getResult();
+			
+			dispatch(SQLiteEvent.RESULT, {
+				"result": new MySQLResult(result.data, result.lastInsertRowID, result.rowsAffected),
+				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+			});
+			
+			sending = false;
 			sendNext();
 		}
 		
 		private function sendNext():void {
-			if (!connection || backlog.length == 0) {
+			if (backlog.length == 0) {
 				return;
 			}
 			
 			query(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

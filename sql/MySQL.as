@@ -25,12 +25,12 @@ package egg82.sql {
 	import com.maclema.mysql.events.MySqlErrorEvent;
 	import com.maclema.mysql.events.MySqlEvent;
 	import com.maclema.mysql.MySqlToken;
-	import com.maclema.mysql.ResultSet;
 	import com.maclema.mysql.Statement;
-	import egg82.objects.Util;
+	import egg82.events.MySQLEvent;
+	import egg82.net.NetworkUtil;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -39,10 +39,7 @@ package egg82.sql {
 	
 	public class MySQL {
 		//vars
-		public const ON_ERROR:Signal = new Signal(String, Object);
-		public const ON_CONNECT:Signal = new Signal();
-		public const ON_DISCONNECT:Signal = new Signal();
-		public const ON_RESULT:Signal = new Signal(MySqlEvent, Object);
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var connection:Connection;
 		private var backlog:Vector.<String>;
@@ -55,15 +52,11 @@ package egg82.sql {
 		
 		//public
 		public function connect(host:String, user:String, pass:String, db:String, port:uint = 3306, policyPort:uint = 80):void {
-			if (port > 65535) {
+			if (!host || host == "" || !user || user == "" || !pass || !db || db == "" || port > 65535 || !connection || !connection.connected) {
 				return;
 			}
 			
-			if (connection) {
-				disconnect();
-			}
-			
-			Util.loadPolicyFile(host, policyPort);
+			NetworkUtil.loadPolicyFile(host, policyPort);
 			connection = new Connection(host, port, user, pass, db);
 			backlog = new Vector.<String>();
 			backlogData = new Vector.<Object>();
@@ -75,7 +68,7 @@ package egg82.sql {
 			connection.connect();
 		}
 		public function disconnect():void {
-			if (!connection) {
+			if (!connection || !connection.connected) {
 				return;
 			}
 			
@@ -85,11 +78,11 @@ package egg82.sql {
 			backlogData = null;
 		}
 		public function query(q:String, data:Object = null):void {
-			if (!q || q == "") {
+			if (!connection || !connection.connected || !q || q == "") {
 				return;
 			}
 			
-			if (!connection.connected || connection.busy) {
+			if (connection.busy) {
 				backlog.push(query);
 				backlogData.push(data);
 			} else {
@@ -99,7 +92,7 @@ package egg82.sql {
 				var token:MySqlToken = statement.executeQuery(q);
 				
 				token.addEventListener(MySqlErrorEvent.SQL_ERROR, onSQLError);
-				token.addEventListener(MySqlEvent.RESULT, onResult);
+				token.addEventListener(MySqlEvent.RESULT, onResponse);
 				token.addEventListener(MySqlEvent.RESPONSE, onResponse);
 			}
 		}
@@ -114,22 +107,31 @@ package egg82.sql {
 				return;
 			}
 			
-			ON_ERROR.dispatch(e.text, (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
+			dispatch(MySQLEvent.ERROR, {
+				"error": e.text,
+				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+			});
 		}
 		private function onSQLError(e:MySqlErrorEvent):void {
 			if (!connection) {
 				return;
 			}
 			
-			ON_ERROR.dispatch(e.msg, (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
+			dispatch(MySQLEvent.ERROR, {
+				"error": e.msg,
+				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+			});
 		}
 		private function onConnect(e:Event):void {
+			dispatch(MySQLEvent.CONNECTED);
 			sendNext();
-			ON_CONNECT.dispatch();
 		}
 		private function onClose(e:Event):void {
-			disconnect();
-			ON_DISCONNECT.dispatch();
+			dispatch(MySQLEvent.DISCONNECTED);
+			
+			connection = null;
+			backlog = null;
+			backlogData = null;
 		}
 		
 		private function onResponse(e:MySqlEvent):void {
@@ -137,24 +139,26 @@ package egg82.sql {
 				return;
 			}
 			
-			ON_RESULT.dispatch(e, (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
-			sendNext();
-		}
-		private function onResult(e:MySqlEvent):void {
-			if (!connection) {
-				return;
-			}
+			var resultSet:Array = e.resultSet.getRows() as Array;
 			
-			ON_RESULT.dispatch(e, (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null);
+			dispatch(MySQLEvent.RESULT, {
+				"result": new MySQLResult((resultSet.length > 0) ? resultSet : null, e.insertID, e.affectedRows),
+				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+			});
+			
 			sendNext();
 		}
 		
 		private function sendNext():void {
-			if (!connection || backlog.length == 0) {
+			if (!connection || !connection.connected || backlog.length == 0) {
 				return;
 			}
 			
 			query(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

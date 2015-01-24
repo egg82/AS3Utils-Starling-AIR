@@ -23,10 +23,10 @@
 package egg82.engines {
 	import egg82.custom.CustomSound;
 	import egg82.custom.CustomWavSound;
-	import egg82.objects.SoundLoader;
 	import flash.events.Event;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
+	import flash.utils.ByteArray;
 	import org.as3wavsound.WavSoundChannel;
 	
 	/**
@@ -36,15 +36,11 @@ package egg82.engines {
 	
 	public class SoundEngine {
 		//vars
-		public static var masterVolume:Number = 1;
-		public static var soundVolume:Number = 1;
-		public static var musicVolume:Number = 1;
+		private static var playingMp3s:Vector.<SoundChannel> = new Vector.<SoundChannel>();
+		private static var playingMp3Sounds:Vector.<CustomSound> = new Vector.<CustomSound>();
 		
-		private static var playingMP3s:Vector.<SoundChannel> = new Vector.<SoundChannel>();
-		private static var playingMP3Sounds:Vector.<CustomSound> = new Vector.<CustomSound>();
-		
-		private static var playingWAVs:Vector.<WavSoundChannel> = new Vector.<WavSoundChannel>();
-		private static var playingWAVSounds:Vector.<CustomWavSound> = new Vector.<CustomWavSound>();
+		private static var playingWavs:Vector.<WavSoundChannel> = new Vector.<WavSoundChannel>();
+		private static var playingWavSounds:Vector.<CustomWavSound> = new Vector.<CustomWavSound>();
 		
 		//constructor
 		public function SoundEngine() {
@@ -52,155 +48,194 @@ package egg82.engines {
 		}
 		
 		//public
-		public static function setVolume():void {
-			var musicVolume:SoundTransform = new SoundTransform(masterVolume * SoundEngine.musicVolume);
-			var soundVolume:SoundTransform = new SoundTransform(masterVolume * SoundEngine.soundVolume);
-			var i:uint;
-			
-			for (i = 0; i < playingMP3s.length; i++) {
-				if (playingMP3Sounds[i].name.substring(0, playingMP3Sounds[i].name.indexOf("_")) == "music") {
-					playingMP3s[i].soundTransform = musicVolume;
-				} else {
-					playingMP3s[i].soundTransform = soundVolume;
-				}
+		public static function playWav(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
+			if (!data || data.length == 0) {
+				return -1;
 			}
-			/*for (i = 0; i < playingWAVs.length; i++) {
-				if (name.substring(0, name.indexOf("_")) == "music") {
-					playingWAVs[i].soundTransform = musicVolume;
-				} else {
-					playingWAVs[i].soundTransform = soundVolume;
-				}
-			}*/
+			
+			if (volume > 1) {
+				volume = 1;
+			}
+			if (volume < 0) {
+				volume = 0;
+			}
+			
+			var sound:CustomWavSound = new CustomWavSound(data, repeat);
+			var channel:WavSoundChannel = sound.play(0, 0, new SoundTransform(volume));
+			
+			channel.addEventListener(Event.SOUND_COMPLETE, onWavComplete);
+			
+			playingWavSounds.push(sound);
+			playingWavs.push(channel);
+			
+			return playingWavs.length - 1;
 		}
-		
-		public static function playWAV(name:String, repeat:Boolean = false):void {
-			var sound:CustomWavSound;
-			var channel:WavSoundChannel;
-			
-			if (!SoundLoader.sounds[name]) {
-				return;
+		public static function playMp3(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
+			if (!data || data.length == 0) {
+				return -1;
 			}
 			
-			sound = new CustomWavSound(name, repeat, SoundLoader.sounds[name]);
-			sound.id = playingMP3s.length;
-			
-			if (name.substring(0, name.indexOf("_")) == "music") {
-				channel = sound.play(0, 0, new SoundTransform(masterVolume * musicVolume));
-			} else {
-				channel = sound.play(0, 0, new SoundTransform(masterVolume * soundVolume));
+			if (volume > 1) {
+				volume = 1;
+			}
+			if (volume < 0) {
+				volume = 0;
 			}
 			
-			channel.addEventListener(Event.SOUND_COMPLETE, onWAVComplete);
-			
-			playingWAVSounds.push(sound);
-			playingWAVs.push(channel);
-		}
-		public static function playMP3(name:String, repeat:Boolean = false):void {
-			var sound:CustomSound;
+			var sound:CustomSound = new CustomSound(repeat);
 			var channel:SoundChannel;
 			
-			if (!SoundLoader.sounds[name]) {
+			sound.loadCompressedDataFromByteArray(data, data.length);
+			channel = sound.play(0, 0, new SoundTransform(volume));
+			channel.addEventListener(Event.SOUND_COMPLETE, onMp3Complete);
+			
+			playingMp3Sounds.push(sound);
+			playingMp3s.push(channel);
+			
+			return playingMp3s.length - 1;
+		}
+		
+		public static function stopWav(wav:uint):void {
+			if (wav >= playingWavs.length) {
 				return;
 			}
 			
-			sound = new CustomSound(name, repeat);
-			sound.loadCompressedDataFromByteArray(SoundLoader.sounds[name], SoundLoader.sounds[name].length);
-			sound.id = playingMP3s.length;
+			playingWavs[wav].stop();
+			playingWavs[wav].removeEventListener(Event.SOUND_COMPLETE, onWavComplete);
 			
-			if (name.substring(0, name.indexOf("_")) == "music") {
-				channel = sound.play(0, 0, new SoundTransform(masterVolume * musicVolume));
-			} else {
-				channel = sound.play(0, 0, new SoundTransform(masterVolume * soundVolume));
+			playingWavSounds.splice(wav, 1);
+			playingWavs.splice(wav, 1);
+		}
+		public static function stopMp3(mp3:uint):void {
+			if (mp3 >= playingMp3s.length) {
+				return;
 			}
 			
-			channel.addEventListener(Event.SOUND_COMPLETE, onMP3Complete);
+			playingMp3s[mp3].stop();
+			playingMp3s[mp3].removeEventListener(Event.SOUND_COMPLETE, onMp3Complete);
 			
-			playingMP3Sounds.push(sound);
-			playingMP3s.push(channel);
+			playingMp3Sounds.splice(mp3, 1);
+			playingMp3s.splice(mp3, 1);
 		}
 		
-		public static function stopMP3(name:String):void {
-			for (var i:uint = 0; i < playingMP3s.length; i++) {
-				if (playingMP3Sounds[i].name == name) {
-					playingMP3s[i].stop();
-					playingMP3s[i].removeEventListener(Event.SOUND_COMPLETE, onMP3Complete);
-					stopMP3Internal(i);
-				}
+		public static function getWav(index:uint):CustomWavSound {
+			if (index >= playingWavs.length) {
+				return null;
 			}
+			
+			return playingWavs[index];
 		}
-		public static function stopWAV(name:String):void {
-			for (var i:uint = 0; i < playingWAVs.length; i++) {
-				if (playingWAVSounds[i].name == name) {
-					playingWAVs[i].stop();
-					playingWAVs[i].removeEventListener(Event.SOUND_COMPLETE, onWAVComplete);
-					stopWAVInternal(i);
+		public static function getMp3(index:uint):CustomSound {
+			if (index >= playingMp3s.length) {
+				return null;
+			}
+			
+			return playingMp3s[index];
+		}
+		
+		public static function getWavIndex(wav:CustomWavSound):int {
+			for (var i:uint = 0; i < playingWavs.length; i++) {
+				if (wav === playingWavs[i]) {
+					return i;
 				}
 			}
+			
+			return -1;
+		}
+		public static function getMp3Index(mp3:CustomSound):int {
+			for (var i:uint = 0; i < playingMp3s.length; i++) {
+				if (mp3 === playingMp3s[i]) {
+					return i;
+				}
+			}
+			
+			return -1;
+		}
+		
+		public static function get numPlayingWavs():uint {
+			return playingWavs.length;
+		}
+		public static function get numPlayingMp3s():uint {
+			return playingMp3s.length;
+		}
+		
+		public static function setWavVolume(wav:uint, volume:Number = 1):void {
+			if (wav >= playingWavs.length) {
+				return;
+			}
+			
+			if (volume > 1) {
+				volume = 1;
+			}
+			if (volume < 0) {
+				volume = 0;
+			}
+			
+			//playingWavs[wav].soundTransform = new SoundTransform(volume);
+		}
+		public static function setMp3Volume(mp3:uint, volume:Number = 1):void {
+			if (mp3 >= playingMp3s.length) {
+				return;
+			}
+			
+			if (volume > 1) {
+				volume = 1;
+			}
+			if (volume < 0) {
+				volume = 0;
+			}
+			
+			playingMp3s[mp3].soundTransform = new SoundTransform(volume);
 		}
 		
 		//private
-		private static function onMP3Complete(e:Event):void {
+		private static function onMp3Complete(e:Event):void {
 			var channel:SoundChannel = e.target as SoundChannel;
 			var sound:CustomSound;
+			var soundIndex:uint;
 			
-			for (var i:uint = 0; i < playingMP3s.length; i++) {
-				if (channel === playingMP3s[i]) {
+			for (var i:uint = 0; i < playingMp3s.length; i++) {
+				if (channel === playingMp3s[i]) {
+					soundIndex = i;
 					break;
 				}
 			}
 			
-			sound = playingMP3Sounds[i];
+			sound = playingMp3Sounds[soundIndex];
 			
-			playingMP3s[sound.id].removeEventListener(Event.SOUND_COMPLETE, onMP3Complete);
-			
-			if (sound.repeat) {
-				playingMP3s[sound.id] = sound.play();
-				playingMP3s[sound.id].addEventListener(Event.SOUND_COMPLETE, onMP3Complete);
-			} else {
-				stopMP3Internal(sound.id);
-			}
-		}
-		private static function onWAVComplete(e:Event):void {
-			var sound:CustomWavSound = e.target.sound as CustomWavSound;
-			
-			playingWAVs[sound.id].removeEventListener(Event.SOUND_COMPLETE, onWAVComplete);
+			channel.removeEventListener(Event.SOUND_COMPLETE, onMp3Complete);
 			
 			if (sound.repeat) {
-				playingWAVs[sound.id] = sound.play();
-				playingWAVs[sound.id].addEventListener(Event.SOUND_COMPLETE, onWAVComplete);
+				playingMp3s[soundIndex] = sound.play();
+				playingMp3s[soundIndex].addEventListener(Event.SOUND_COMPLETE, onMp3Complete);
 			} else {
-				stopWAVInternal(sound.id);
+				playingMp3Sounds.splice(soundIndex, 1);
+				playingMp3s.splice(soundIndex, 1);
 			}
 		}
-		
-		private static function reshuffleMP3s(beginIndex:uint):void {
-			if (beginIndex >= playingMP3s.length || playingMP3s.length == 0) {
-				return;
+		private static function onWavComplete(e:Event):void {
+			var channel:WavSoundChannel = e.target as WavSoundChannel;
+			var sound:CustomWavSound;
+			var soundIndex:uint;
+			
+			for (var i:uint = 0; i < playingWavs.length; i++) {
+				if (channel === playingWavs[i]) {
+					soundIndex = i;
+					break;
+				}
 			}
 			
-			for (var i:uint = beginIndex; i < playingMP3s.length; i++) {
-				playingMP3Sounds[i].id = i;
-			}
-		}
-		private static function reshuffleWAVs(beginIndex:uint):void {
-			if (beginIndex >= playingWAVs.length || playingWAVs.length == 0) {
-				return;
-			}
+			sound = playingWavSounds[soundIndex];
 			
-			for (var i:uint = beginIndex; i < playingWAVs.length; i++) {
-				playingWAVSounds[i].id = i;
+			channel.removeEventListener(Event.SOUND_COMPLETE, onWavComplete);
+			
+			if (sound.repeat) {
+				playingWavs[soundIndex] = sound.play();
+				playingWavs[soundIndex].addEventListener(Event.SOUND_COMPLETE, onWavComplete);
+			} else {
+				playingWavSounds.splice(soundIndex, 1);
+				playingWavs.splice(soundIndex, 1);
 			}
-		}
-		
-		private static function stopMP3Internal(index:uint):void {
-			playingMP3Sounds.splice(index, 1);
-			playingMP3s.splice(index, 1);
-			reshuffleMP3s(index);
-		}
-		private static function stopWAVInternal(index:uint):void {
-			playingWAVSounds.splice(index, 1);
-			playingWAVs.splice(index, 1);
-			reshuffleWAVs(index);
 		}
 	}
 }

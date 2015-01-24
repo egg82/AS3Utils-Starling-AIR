@@ -21,89 +21,94 @@
  */
 
 package egg82.net {
+	import egg82.events.URLLoaderEvent;
 	import flash.events.Event;
+	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.ByteArray;
-	import org.osflash.signals.Signal;
+	import egg82.patterns.Observer;
 	
 	/**
 	 * ...
-	 * @author egg82
+	 * @author ...
 	 */
 	
-	public class FileDownloader {
+	public class URLLoader {
 		//vars
-		public const ON_OPEN:Signal = new Signal();
-		public const ON_ERROR:Signal = new Signal(String);
-		public const ON_PROGRESS:Signal = new Signal(Number, Number);
-		public const ON_COMPLETE:Signal = new Signal(ByteArray);
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		private var loader:URLLoader;
+		private var loader:flash.net.URLLoader = new flash.net.URLLoader();
+		private var _loading:Boolean = false;
 		
 		//constructor
-		public function FileDownloader() {
+		public function URLLoader() {
+			loader.dataFormat = URLLoaderDataFormat.BINARY;
 			
-		}
-		
-		//public
-		public function download(file:String):void {
-			if (loader) {
-				cancel();
-			}
-			
-			loader = new URLLoader();
-			loader.addEventListener(Event.OPEN, onOpen);
-			loader.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
+			loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onResponseStatus);
+			loader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
 			loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
 			loader.addEventListener(ProgressEvent.PROGRESS, onProgress);
 			loader.addEventListener(Event.COMPLETE, onComplete);
-			
-			loader.dataFormat = URLLoaderDataFormat.BINARY;
-			loader.load(new URLRequest(file));
 		}
-		public function cancel():void {
-			if (!loader) {
+		
+		//public
+		public function load(url:String):void {
+			if (_loading) {
 				return;
 			}
 			
-			loader.removeEventListener(Event.OPEN, onOpen);
-			loader.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			loader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-			loader.removeEventListener(ProgressEvent.PROGRESS, onProgress);
-			loader.removeEventListener(Event.COMPLETE, onComplete);
+			_loading = true;
+			loader.load(new URLRequest(url));
+		}
+		public function loadRequest(request:URLRequest):void {
+			if (_loading) {
+				return;
+			}
+			
+			_loading = true;
+			loader.load(request);
+		}
+		
+		public function cancel():void {
+			if (!_loading) {
+				return;
+			}
 			
 			loader.close();
-			loader = null;
+			
+			_loading = false;
+		}
+		
+		public function get loading():Boolean {
+			return _loading;
 		}
 		
 		//private
-		private function onOpen(e:Event):void {
-			ON_OPEN.dispatch();
+		private function onResponseStatus(e:HTTPStatusEvent):void {
+			dispatch(URLLoaderEvent.RESPONSE_STATUS, e.status);
 		}
-		
-		private function onIOError(e:IOErrorEvent):void {
-			cancel();
-			ON_ERROR.dispatch(e.text);
+		private function onIoError(e:IOErrorEvent):void {
+			dispatch(URLLoaderEvent.ERROR, e.text);
 		}
 		private function onSecurityError(e:SecurityErrorEvent):void {
-			cancel();
-			ON_ERROR.dispatch(e.text);
+			dispatch(URLLoaderEvent.ERROR, e.text);
 		}
-		
 		private function onProgress(e:ProgressEvent):void {
-			ON_PROGRESS.dispatch(e.bytesLoaded, e.bytesTotal);
+			dispatch(URLLoaderEvent.PROGRESS, {
+				"loaded": e.bytesLoaded,
+				"total": e.bytesTotal
+			});
+		}
+		private function onComplete(e:Event):void {
+			dispatch(URLLoaderEvent.COMPLETE, loader.data);
 		}
 		
-		private function onComplete(e:Event):void {
-			var bytes:ByteArray = loader.data as ByteArray;
-			
-			cancel();
-			ON_COMPLETE.dispatch(bytes);
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }

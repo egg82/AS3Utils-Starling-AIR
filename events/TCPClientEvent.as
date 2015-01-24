@@ -20,54 +20,31 @@
  * THE SOFTWARE.
  */
 
-package egg82.commands {
-	import flash.events.TimerEvent;
-	import flash.utils.Timer;
-	import org.osflash.signals.Signal;
+package egg82.events {
 	
 	/**
 	 * ...
-	 * @author ...
+	 * @author egg82
 	 */
 	
-	public class Command {
+	public class TCPClientEvent {
 		//vars
-		public const ON_COMPLETE:Signal = new Signal(Object, Object);
-		
-		private var timer:Timer;
+		public static const CONNECTED:String = "connected";
+		public static const ERROR:String = "error";
+		public static const DATA:String = "data";
+		public static const DOWNLOAD_PROGRESS:String = "downloadProgress";
+		public static const UPLOAD_PROGRESS:String = "uploadProgress";
+		public static const UPLOAD_COMPLETE:String = "uploadComplete";
+		public static const CLOSED:String = "closed";
 		
 		//constructor
-		public function Command(delay:Number = 0) {
-			if (delay <= 0) {
-				return;
-			}
+		public function TCPClientEvent() {
 			
-			if (delay < 17) {
-				delay = 17;
-			}
-			
-			timer = new Timer(delay, 1);
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
 		}
 		
 		//public
-		public function start():void {
-			if (timer) {
-				timer.start();
-				return;
-			}
-			
-			execute();
-		}
 		
 		//private
-		protected function execute():void {
-			ON_COMPLETE.dispatch(this, null);
-		}
 		
-		private function onTimer(e:TimerEvent):void {
-			timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
-			execute();
-		}
 	}
 }

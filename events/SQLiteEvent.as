@@ -20,30 +20,26 @@
  * THE SOFTWARE.
  */
 
-package egg82.custom {
-	import flash.media.Sound;
-	import flash.media.SoundLoaderContext;
-	import flash.net.URLRequest;
+package egg82.events {
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class CustomSound extends Sound {
+	public class SQLiteEvent {
 		//vars
-		private var _repeat:Boolean;
+		public static const ERROR:String = "error";
+		public static const CONNECTED:String = "connected";
+		public static const DISCONNECTED:String = "disconnected";
+		public static const RESULT:String = "result";
 		
 		//constructor
-		public function CustomSound(repeat:Boolean, stream:URLRequest = null, context:SoundLoaderContext = null) {
-			_repeat = repeat;
-			super(stream, context);
+		public function SQLiteEvent() {
+			
 		}
 		
 		//public
-		public function get repeat():Boolean {
-			return _repeat;
-		}
 		
 		//private
 		

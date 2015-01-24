@@ -21,19 +21,16 @@
  */
 
 package egg82.mod {
+	import egg82.events.FileLoaderEvent;
+	import egg82.events.ModEvent;
+	import egg82.filesystem.FileLoader;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
-	import flash.events.SecurityErrorEvent;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
 	import flash.system.MessageChannel;
 	import flash.system.Worker;
 	import flash.system.WorkerDomain;
 	import flash.system.WorkerState;
 	import flash.utils.ByteArray;
-	import org.osflash.signals.Signal;
 	
 	/**
 	 * ...
@@ -42,15 +39,16 @@ package egg82.mod {
 	
 	public class Mod {
 		//vars
-		public const ON_ERROR:Signal = new Signal(String, Mod);
-		public const ON_PROGRESS:Signal = new Signal(Mod, Number, Number);
-		public const ON_LOADED:Signal = new Signal(Mod);
-		public const ON_MESSAGE:Signal = new Signal(Object, String, Mod);
+		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		private var loader:URLLoader;
+		private var loader:FileLoader;
+		private var _loaded:Boolean = false;
+		
 		private var worker:Worker;
 		private var incoming:Array;
 		private var outgoing:Array;
+		
+		private var fileLoaderObserver:Observer = new Observer();
 		
 		//constructor
 		public function Mod() {
@@ -59,27 +57,22 @@ package egg82.mod {
 		
 		//public
 		public function load(path:String):void {
-			if (loader) {
-				unload();
-			}
-			
-			loader = new URLLoader();
-			loader.dataFormat = URLLoaderDataFormat.BINARY;
-			loader.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-			loader.addEventListener(ProgressEvent.PROGRESS, onProgress);
-			loader.addEventListener(Event.COMPLETE, onComplete);
-			loader.load(new URLRequest(path));
-		}
-		public function loadBytes(bytes:ByteArray):void {
-			if (!bytes || bytes.length == 0) {
+			if (_loaded) {
 				return;
 			}
-			if (loader) {
-				unload();
-			}
+			_loaded = true;
 			
-			loader = new URLLoader();
+			fileLoaderObserver.add(onFileLoaderObserverNotify);
+			Observer.add(FileLoader.OBSERVERS, fileLoaderObserver);
+			
+			loader = new FileLoader();
+			loader.load(path);
+		}
+		public function loadBytes(bytes:ByteArray):void {
+			if (_loaded || !bytes || bytes.length == 0) {
+				return;
+			}
+			_loaded = true;
 			
 			incoming = new Array();
 			outgoing = new Array();
@@ -89,7 +82,7 @@ package egg82.mod {
 			worker.start();
 		}
 		public function unload():void {
-			if (!loader) {
+			if (!_loaded) {
 				return;
 			}
 			
@@ -100,114 +93,117 @@ package egg82.mod {
 				outgoing = null;
 			}
 			
-			loader.close();
-			loader = null;
+			_loaded = false;
+		}
+		
+		public function get loaded():Boolean {
+			return _loaded;
 		}
 		
 		public function createChannel(name:String):void {
-			if (!name || name == "") {
-				return;
-			}
-			if (!worker) {
-				return;
-			}
-			if (incoming[name] || outgoing[name]) {
+			if (!worker || !name || name == "" || this.incoming[name] || this.outgoing[name]) {
 				return;
 			}
 			
-			incoming[name] = worker.createMessageChannel(Worker.current);
-			outgoing[name] = Worker.current.createMessageChannel(worker);
+			var incoming:MessageChannel = worker.createMessageChannel(Worker.current);
+			var outgoing:MessageChannel = Worker.current.createMessageChannel(worker);
 			
-			(incoming[name] as MessageChannel).addEventListener(Event.CHANNEL_MESSAGE, onMessage);
+			this.incoming[name] = incoming;
+			this.outgoing[name] = outgoing;
+			
+			incoming.addEventListener(Event.CHANNEL_MESSAGE, onMessage);
 			
 			worker.setSharedProperty(name + "_incoming", outgoing);
 			worker.setSharedProperty(name + "_outgoing", incoming);
 		}
 		public function removeChannel(name:String):void {
-			if (!name || name == "") {
-				return;
-			}
-			if (!worker) {
+			if (!worker || !name || name == "" || !this.incoming[name] || !this.outgoing[name]) {
 				return;
 			}
 			
-			if (incoming[name]) {
-				worker.setSharedProperty(name + "_outgoing", null);
-				(incoming[name] as MessageChannel).removeEventListener(Event.CHANNEL_MESSAGE, onMessage);
-				incoming[name] = null;
-			}
-			if (outgoing[name]) {
-				worker.setSharedProperty(name + "_incoming", null);
-				outgoing[name] = null;
-			}
+			var incoming:MessageChannel = this.incoming[name] as MessageChannel;
+			var outgoing:MessageChannel = this.outgoing[name] as MessageChannel;
+			
+			worker.setSharedProperty(name + "_outgoing", null);
+			incoming.removeEventListener(Event.CHANNEL_MESSAGE, onMessage);
+			this.incoming[name] = null;
+			
+			worker.setSharedProperty(name + "_incoming", null);
+			this.outgoing[name] = null;
 		}
-		public function sendMessage(obj:Object, channel:String):void {
-			if (!channel || channel == "") {
-				return;
-			}
-			if (!worker) {
-				return;
-			}
-			if (!outgoing[channel]) {
+		public function sendMessage(channel:String, data:Object):void {
+			if (!worker || !channel || channel == "" || !this.outgoing[channel]) {
 				return;
 			}
 			
-			(outgoing[channel] as MessageChannel).send(obj);
+			var outgoing:MessageChannel = this.outgoing[channel] as MessageChannel;
+			
+			outgoing.send(data);
 		}
 		
 		//private
-		private function onIOError(e:IOErrorEvent):void {
-			removeListeners();
-			ON_ERROR.dispatch(e.text, this);
-		}
-		private function onSecurityError(e:SecurityErrorEvent):void {
-			removeListeners();
-			ON_ERROR.dispatch(e.text, this);
-		}
-		
-		private function onProgress(e:ProgressEvent):void {
-			ON_PROGRESS.dispatch(e.bytesLoaded, e.bytesTotal, this);
-		}
-		
-		private function onComplete(e:Event):void {
-			removeListeners();
+		private function onFileLoaderObserverNotify(sender:Object, event:String, data:Object):void {
+			if (sender !== loader) {
+				return;
+			}
 			
+			if (event == FileLoaderEvent.PROGRESS) {
+				dispatch(ModEvent.PROGRESS, {
+					"loaded": data.loaded,
+					"total": data.total
+				});
+			} else if (event == FileLoaderEvent.COMPLETE) {
+				Observer.remove(FileLoader.OBSERVERS, fileLoaderObserver);
+				onComplete(data.data as ByteArray);
+			} else if (event == FileLoaderEvent.ERROR) {
+				Observer.remove(FileLoader.OBSERVERS, fileLoaderObserver);
+				_loaded = false;
+				dispatch(ModEvent.ERROR, {
+					"error": data.error
+				});
+			}
+		}
+		
+		private function onComplete(data:ByteArray):void {
 			incoming = new Array();
 			outgoing = new Array();
 			
-			worker = WorkerDomain.current.createWorker(loader.data as ByteArray, true);
+			worker = WorkerDomain.current.createWorker(data, true);
 			worker.addEventListener(Event.WORKER_STATE, onWorkerState);
 			worker.start();
 		}
 		
-		private function removeListeners():void {
-			loader.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			loader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-			loader.removeEventListener(ProgressEvent.PROGRESS, onProgress);
-			loader.removeEventListener(Event.COMPLETE, onComplete);
-		}
-		
 		private function onWorkerState(e:Event):void {
 			if (worker.state == WorkerState.RUNNING) {
-				ON_LOADED.dispatch(this);
+				dispatch(ModEvent.LOADED);
 			} else if (worker.state == WorkerState.TERMINATED) {
+				worker.removeEventListener(Event.WORKER_STATE, onWorkerState);
+				
 				worker = null;
 				incoming = null;
 				outgoing = null;
+				_loaded = false;
 				
-				ON_ERROR.dispatch("Worker terminated unexpectedly.", this);
+				dispatch(ModEvent.TERMINATED);
 			}
-			
-			worker.removeEventListener(Event.WORKER_STATE, onWorkerState);
 		}
 		
 		private function onMessage(e:Event):void {
+			var channel:MessageChannel = e.target as MessageChannel;
+			
 			for (var key:String in incoming) {
-				if (incoming[key] === e.target) {
-					ON_MESSAGE.dispatch((e.target as MessageChannel).receive() as Object, key, this);
+				if (incoming[key] === channel) {
+					dispatch(ModEvent.MESSAGE, {
+						"channel": key,
+						"data": channel.receive()
+					});
 					return;
 				}
 			}
+		}
+		
+		private function dispatch(event:String, data:Object = null):void {
+			Observer.dispatch(OBSERVERS, this, event, data);
 		}
 	}
 }
