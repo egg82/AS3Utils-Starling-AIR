@@ -119,6 +119,8 @@ package egg82.net {
 			
 			clients[client].writeBytes(data);
 			clients[client].flush();
+			
+			dispatch(TCPServerEvent.DEBUG, "Sent " + data.length + " bytes to client " + client);
 		}
 		public function sendAll(data:ByteArray):void {
 			for (var i:uint = 0; i < clients.length; i++) {
@@ -206,7 +208,7 @@ package egg82.net {
 					removeListeners(i);
 					clients.splice(i, 1);
 					
-					dispatch(TCPServerEvent.CLIENT_CLOSED, i);
+					dispatch(TCPServerEvent.CLIENT_DISCONNECTED, i);
 					
 					return;
 				}
@@ -290,6 +292,8 @@ package egg82.net {
 				send(client, writeData);
 				
 				removeListeners(client);
+				
+				dispatch(TCPServerEvent.DEBUG, "Sent policy file to client " + client);
 				try {
 					clients[client].close();
 				} catch (ex:Error) {
@@ -298,6 +302,7 @@ package egg82.net {
 				clients.splice(client, 1);
 			} else {
 				data.position = 0;
+				dispatch(TCPServerEvent.DEBUG, "Received " + data.length + " bytes from client " + client);
 				dispatch(TCPServerEvent.CLIENT_DATA, {
 					"client": client,
 					"data": data

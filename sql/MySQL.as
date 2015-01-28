@@ -45,6 +45,8 @@ package egg82.sql {
 		private var backlog:Vector.<String>;
 		private var backlogData:Vector.<Object>;
 		
+		private var host:String;
+		
 		//constructor
 		public function MySQL() {
 			
@@ -55,6 +57,8 @@ package egg82.sql {
 			if (!host || host == "" || !user || user == "" || !pass || !db || db == "" || port > 65535 || !connection || !connection.connected) {
 				return;
 			}
+			
+			this.host = host + ":" + port;
 			
 			NetworkUtil.loadPolicyFile(host, policyPort);
 			connection = new Connection(host, port, user, pass, db);
@@ -82,18 +86,11 @@ package egg82.sql {
 				return;
 			}
 			
-			if (connection.busy) {
+			if (connection.busy || backlog.length > 0) {
 				backlog.push(query);
 				backlogData.push(data);
 			} else {
-				backlogData.unshift(data);
-				
-				var statement:Statement = connection.createStatement();
-				var token:MySqlToken = statement.executeQuery(q);
-				
-				token.addEventListener(MySqlErrorEvent.SQL_ERROR, onSQLError);
-				token.addEventListener(MySqlEvent.RESULT, onResponse);
-				token.addEventListener(MySqlEvent.RESPONSE, onResponse);
+				queryInternal(q, data);
 			}
 		}
 		
@@ -102,6 +99,17 @@ package egg82.sql {
 		}
 		
 		//private
+		private function queryInternal(q:String, data:Object):void {
+			backlogData.unshift(data);
+			
+			var statement:Statement = connection.createStatement();
+			var token:MySqlToken = statement.executeQuery(q);
+			
+			token.addEventListener(MySqlErrorEvent.SQL_ERROR, onSQLError);
+			token.addEventListener(MySqlEvent.RESULT, onResponse);
+			token.addEventListener(MySqlEvent.RESPONSE, onResponse);
+		}
+		
 		private function onIOError(e:IOErrorEvent):void {
 			if (!connection) {
 				return;
@@ -123,11 +131,11 @@ package egg82.sql {
 			});
 		}
 		private function onConnect(e:Event):void {
-			dispatch(MySQLEvent.CONNECTED);
+			dispatch(MySQLEvent.CONNECTED, host);
 			sendNext();
 		}
 		private function onClose(e:Event):void {
-			dispatch(MySQLEvent.DISCONNECTED);
+			dispatch(MySQLEvent.DISCONNECTED, host);
 			
 			connection = null;
 			backlog = null;
@@ -154,7 +162,7 @@ package egg82.sql {
 				return;
 			}
 			
-			query(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
+			queryInternal(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
 		}
 		
 		private function dispatch(event:String, data:Object = null):void {

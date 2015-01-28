@@ -32,10 +32,11 @@ package egg82.events {
 		public static const CONNECTED:String = "connected";
 		public static const ERROR:String = "error";
 		public static const DATA:String = "data";
+		public static const DEBUG:String = "debug";
 		public static const DOWNLOAD_PROGRESS:String = "downloadProgress";
 		public static const UPLOAD_PROGRESS:String = "uploadProgress";
 		public static const UPLOAD_COMPLETE:String = "uploadComplete";
-		public static const CLOSED:String = "closed";
+		public static const DISCONNECTED:String = "disconnected";
 		
 		//constructor
 		public function TCPClientEvent() {

@@ -33,6 +33,7 @@ package egg82.base {
 		//vars
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
+		public var active:Boolean = true;
 		public var forceUpdate:Boolean = false;
 		private var _window:BaseWindow = null;
 		

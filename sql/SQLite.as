@@ -113,16 +113,7 @@ package egg82.sql {
 				backlogData.push(data);
 			} else {
 				sending = true;
-				
-				backlogData.unshift(data);
-				
-				statement = new SQLStatement();
-				statement.sqlConnection = connection;
-				statement.text = q;
-				
-				statement.addEventListener(SQLErrorEvent.ERROR, onSQLError);
-				statement.addEventListener(SQLEvent.RESULT, onResult);
-				statement.execute();
+				queryInternal(q, data);
 			}
 		}
 		public function get connected():Boolean {
@@ -130,6 +121,18 @@ package egg82.sql {
 		}
 		
 		//private
+		private function queryInternal(q:String, data:Object):void {
+			backlogData.unshift(data);
+			
+			statement = new SQLStatement();
+			statement.sqlConnection = connection;
+			statement.text = q;
+			
+			statement.addEventListener(SQLErrorEvent.ERROR, onSQLError);
+			statement.addEventListener(SQLEvent.RESULT, onResult);
+			statement.execute();
+		}
+		
 		private function onConnectionError(e:SQLErrorEvent):void {
 			dispatch(SQLiteEvent.ERROR, {
 				"error": e.error.message + File.lineEnding + "\tDetails: " + e.error.details,
@@ -146,7 +149,7 @@ package egg82.sql {
 		private function onOpen(e:SQLEvent):void {
 			sending = false;
 			
-			dispatch(SQLiteEvent.CONNECTED);
+			dispatch(SQLiteEvent.CONNECTED, file.nativePath);
 			sendNext();
 		}
 		private function onClose(e:SQLEvent):void {
@@ -154,12 +157,14 @@ package egg82.sql {
 				statement.cancel();
 			}
 			
+			var path:String = file.nativePath;
+			
 			statement = null;
 			backlog = null;
 			backlogData = null;
 			file = null;
 			
-			dispatch(SQLiteEvent.DISCONNECTED);
+			dispatch(SQLiteEvent.DISCONNECTED, path);
 		}
 		private function onResult(e:SQLEvent):void {
 			var result:SQLResult = statement.getResult();
@@ -169,16 +174,16 @@ package egg82.sql {
 				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
 			});
 			
-			sending = false;
 			sendNext();
 		}
 		
 		private function sendNext():void {
 			if (backlog.length == 0) {
+				sending = false;
 				return;
 			}
 			
-			query(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
+			queryInternal(backlog.splice(0, 1)[0], backlogData.splice(0, 1)[0]);
 		}
 		
 		private function dispatch(event:String, data:Object = null):void {

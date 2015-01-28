@@ -306,10 +306,14 @@ package egg82.engines {
 					if (j == 0 || states[i][j].forceUpdate) {
 						if (useTimestep) {
 							for (var k:uint = 0; k < steps; k++) {
-								states[i][j].update();
+								if (states[i][j].active) {
+									states[i][j].update();
+								}
 							}
 						} else {
-							states[i][j].update();
+							if (states[i][j].active) {
+								states[i][j].update();
+							}
 						}
 					}
 				}
@@ -329,7 +333,9 @@ package egg82.engines {
 			for (var i:uint = 0; i < states.length; i++) {
 				for (var j:uint = 0; j < states[i].length; j++) {
 					if (j == 0 || states[i][j].forceUpdate) {
-						states[i][j].draw();
+						if (states[i][j].active) {
+							states[i][j].draw();
+						}
 					}
 				}
 			}

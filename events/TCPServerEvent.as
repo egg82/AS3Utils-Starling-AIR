@@ -30,11 +30,12 @@ package egg82.events {
 	public class TCPServerEvent {
 		//vars
 		public static const ERROR:String = "error";
+		public static const DEBUG:String = "debug";
 		public static const OPENED:String = "opened";
 		public static const CLOSED:String = "closed";
 		public static const CONNECTION:String = "connection";
 		public static const CLIENT_ERROR:String = "clientError";
-		public static const CLIENT_CLOSED:String = "clientClosed";
+		public static const CLIENT_DISCONNECTED:String = "clientDisconnected";
 		public static const CLIENT_CONNECTED:String = "clientConnected";
 		public static const CLIENT_UPLOAD_PROGRESS:String = "clientUploadProgress";
 		public static const CLIENT_DOWNLOAD_PROGRESS:String = "clientDownloadProgress";

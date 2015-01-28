@@ -85,7 +85,7 @@ package egg82.net {
 			
 			backlog = null;
 			
-			dispatch(TCPClientEvent.CLOSED);
+			dispatch(TCPClientEvent.DISCONNECTED);
 		}
 		
 		public function send(data:ByteArray):void {
@@ -97,14 +97,7 @@ package egg82.net {
 				backlog.push(data);
 			} else {
 				sending = true;
-				
-				try {
-					socket.writeBytes(data);
-					socket.flush();
-				} catch (ex:Error) {
-					dispatch(TCPClientEvent.ERROR, ex.message);
-					return;
-				}
+				sendInternal(data);
 			}
 		}
 		
@@ -113,6 +106,18 @@ package egg82.net {
 		}
 		
 		//private
+		private function sendInternal(data:ByteArray):void {
+			try {
+				socket.writeBytes(data);
+				socket.flush();
+			} catch (ex:Error) {
+				dispatch(TCPClientEvent.ERROR, ex.message);
+				return;
+			}
+			
+			dispatch(TCPClientEvent.DEBUG, "Sent " + data.length + " bytes");
+		}
+		
 		private function onIOError(e:IOErrorEvent):void {
 			dispatch(TCPClientEvent.ERROR, e.text);
 			disconnect();
@@ -142,6 +147,7 @@ package egg82.net {
 			socket.readBytes(temp);
 			temp.position = 0;
 			
+			dispatch(TCPClientEvent.DEBUG, "Received " + temp.length + " bytes");
 			dispatch(TCPClientEvent.DATA, temp);
 		}
 		private function onOutputProgress(e:OutputProgressEvent):void {
@@ -152,21 +158,21 @@ package egg82.net {
 			
 			if (e.bytesPending == 0) {
 				dispatch(TCPClientEvent.UPLOAD_COMPLETE);
-				sending = false;
 				sendNext();
 			}
 		}
 		private function onClose(e:Event):void {
 			backlog = null;
-			dispatch(TCPClientEvent.CLOSED);
+			dispatch(TCPClientEvent.DISCONNECTED);
 		}
 		
 		private function sendNext():void {
 			if (backlog.length == 0) {
+				sending = false;
 				return;
 			}
 			
-			send(backlog.splice(0, 1)[0]);
+			sendInternal(backlog.splice(0, 1)[0]);
 		}
 		
 		private function dispatch(event:String, data:Object = null):void {
