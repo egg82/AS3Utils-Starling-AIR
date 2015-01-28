@@ -22,8 +22,13 @@
 
 package egg82.objects {
 	import egg82.engines.StateEngine;
+	import flash.display.BitmapData;
 	import flash.events.TimerEvent;
+	import flash.geom.Point;
 	import flash.system.Security;
+	import flash.ui.Mouse;
+	import flash.ui.MouseCursor;
+	import flash.ui.MouseCursorData;
 	import flash.utils.ByteArray;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
@@ -39,6 +44,8 @@ package egg82.objects {
 		private static var timers:Vector.<Timer> = new Vector.<Timer>();
 		private static var functions:Vector.<Function> = new Vector.<Function>();
 		private static var parameters:Vector.<Array> = new Vector.<Array>();
+		
+		private static var cursorNames:Vector.<String> = new Vector.<String>();
 		
 		//constructor
 		public function Util() {
@@ -186,6 +193,44 @@ package egg82.objects {
 		
 		public static function setColor(r:uint, g:uint, b:uint, a:uint):uint {
 			return (a << 24) | (r << 16) | (g << 8) | b;
+		}
+		
+		public static function setMouseCursor(name:String, bitmaps:Vector.<BitmapData>, framerate:uint, hotSpot:Point = null, replaceExisting:Boolean = false):void {
+			if (framerate == 0) {
+				return;
+			}
+			if ((!name || name == "") && (bitmaps && bitmaps.length > 0)) {
+				return;
+			}
+			
+			if (!bitmaps || bitmaps.length == 0) {
+				Mouse.cursor = MouseCursor.AUTO;
+				return;
+			}
+			if (!hotSpot) {
+				hotSpot = new Point();
+			}
+			
+			
+			if (cursorNames.indexOf(name) == -1) {
+				replaceExisting = true;
+				cursorNames.push(name);
+			} else {
+				if (replaceExisting) {
+					Mouse.unregisterCursor(name);
+				}
+			}
+			
+			if (replaceExisting) {
+				var data:MouseCursorData = new MouseCursorData();
+				data.data = bitmaps;
+				data.hotSpot = hotSpot;
+				data.frameRate = framerate;
+				
+				Mouse.registerCursor(name, data);
+			}
+			
+			Mouse.cursor = name;
 		}
 		
 		//private

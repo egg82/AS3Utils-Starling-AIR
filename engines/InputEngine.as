@@ -482,7 +482,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			
 			if (keys[e.keyCode]) {
 				return;
@@ -499,7 +501,9 @@ package egg82.engines {
 			
 			keys[e.keyCode] = false;
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			
 			dispatch(InputEngineEvent.KEY_UP, {
 				"stage": stage,
@@ -511,7 +515,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			
 			var oldPoint:Point = new Point(_mouseLocation.x, _mouseLocation.y);
 			
@@ -528,7 +534,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_mouseWheel = e.delta;
 			
 			dispatch(InputEngineEvent.MOUSE_WHEEL, {
@@ -541,7 +549,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_leftDown = true;
 			
 			dispatch(InputEngineEvent.MOUSE_DOWN, {
@@ -553,7 +563,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_middleDown = true;
 			
 			dispatch(InputEngineEvent.MOUSE_DOWN, {
@@ -565,7 +577,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_rightDown = true;
 			
 			dispatch(InputEngineEvent.MOUSE_DOWN, {
@@ -578,7 +592,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_leftDown = false;
 			
 			dispatch(InputEngineEvent.MOUSE_UP, {
@@ -590,7 +606,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_middleDown = false;
 			
 			dispatch(InputEngineEvent.MOUSE_UP, {
@@ -602,7 +620,9 @@ package egg82.engines {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
-			_lastStage = stage;
+			if (stage) {
+				_lastStage = stage;
+			}
 			_rightDown = false;
 			
 			dispatch(InputEngineEvent.MOUSE_UP, {
