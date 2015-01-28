@@ -20,59 +20,26 @@
  * THE SOFTWARE.
  */
 
-package egg82.patterns.command {
-	import egg82.events.CommandEvent;
-	import egg82.patterns.Observer;
-	import flash.events.TimerEvent;
-	import flash.utils.Timer;
+package egg82.events {
 	
 	/**
 	 * ...
-	 * @author ...
+	 * @author egg82
 	 */
 	
-	public class Command {
+	public class CommandEvent {
 		//vars
-		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
-		
-		private var timer:Timer;
+		public static const COMPLETE:String = "complete";
+		public static const ERROR:String = "error";
 		
 		//constructor
-		public function Command(delay:Number = 0) {
-			if (delay <= 0) {
-				return;
-			}
+		public function CommandEvent() {
 			
-			if (delay < 17) {
-				delay = 17;
-			}
-			
-			timer = new Timer(delay, 1);
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
 		}
 		
 		//public
-		public function start():void {
-			if (timer) {
-				timer.start();
-				return;
-			}
-			
-			execute();
-		}
 		
 		//private
-		protected function execute():void {
-			dispatch(CommandEvent.COMPLETE);
-		}
 		
-		private function onTimer(e:TimerEvent):void {
-			timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
-			execute();
-		}
-		
-		protected final function dispatch(event:String, data:Object = null):void {
-			Observer.dispatch(OBSERVERS, this, event, data);
-		}
 	}
 }

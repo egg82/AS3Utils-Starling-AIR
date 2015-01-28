@@ -23,56 +23,51 @@
 package egg82.patterns.command {
 	import egg82.events.CommandEvent;
 	import egg82.patterns.Observer;
-	import flash.events.TimerEvent;
-	import flash.utils.Timer;
 	
 	/**
 	 * ...
-	 * @author ...
+	 * @author egg82
 	 */
 	
-	public class Command {
+	public class NestedCommand extends Command {
 		//vars
-		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
+		private var command:Command;
 		
-		private var timer:Timer;
+		private var commandObserver:Observer = new Observer();
 		
 		//constructor
-		public function Command(delay:Number = 0) {
-			if (delay <= 0) {
-				return;
-			}
+		public function NestedCommand(command:Command, delay:Number = 0) {
+			super(0);
+			this.command = command;
 			
-			if (delay < 17) {
-				delay = 17;
-			}
-			
-			timer = new Timer(delay, 1);
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
+			commandObserver.add(onCommandObserverNotify);
 		}
 		
 		//public
-		public function start():void {
-			if (timer) {
-				timer.start();
+		
+		//private
+		override protected function execute():void {
+			if (!command) {
 				return;
 			}
 			
-			execute();
+			Observer.add(Command.OBSERVERS, commandObserver);
+			command.start();
 		}
 		
-		//private
-		protected function execute():void {
+		protected function postExecute(data:Object):void {
 			dispatch(CommandEvent.COMPLETE);
 		}
 		
-		private function onTimer(e:TimerEvent):void {
-			timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimer);
-			execute();
-		}
-		
-		protected final function dispatch(event:String, data:Object = null):void {
-			Observer.dispatch(OBSERVERS, this, event, data);
+		private function onCommandObserverNotify(sender:Object, event:String, data:Object):void {
+			if (sender !== command) {
+				return;
+			}
+			
+			if (event == CommandEvent.COMPLETE) {
+				Observer.remove(Command.OBSERVERS, commandObserver);
+				postExecute(data);
+			}
 		}
 	}
 }

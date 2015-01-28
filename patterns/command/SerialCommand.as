@@ -21,6 +21,8 @@
  */
 
 package egg82.patterns.command {
+	import egg82.events.CommandEvent;
+	import egg82.patterns.Observer;
 	
 	/**
 	 * ...
@@ -29,14 +31,20 @@ package egg82.patterns.command {
 	
 	public class SerialCommand extends Command {
 		//vars
+		private var startData:Object;
 		private var commands:Array;
 		private var completed:uint;
 		private var total:uint;
 		
+		private var commandObserver:Observer = new Observer();
+		
 		//constructor
-		public function SerialCommand(delay:Number = 0, ...commands) {
+		public function SerialCommand(delay:Number = 0, startData:Object = null, ...serializableCommands) {
 			super(delay);
-			this.commands = commands;
+			this.startData = startData;
+			this.commands = serializableCommands;
+			
+			commandObserver.add(onCommandObserverNotify);
 		}
 		
 		//public
@@ -44,9 +52,11 @@ package egg82.patterns.command {
 		//private
 		override protected function execute():void {
 			if (!commands || commands.length == 0) {
-				ON_COMPLETE.dispatch(this, null);
+				dispatch(CommandEvent.COMPLETE);
 				return;
 			}
+			
+			Observer.add(Command.OBSERVERS, commandObserver);
 			
 			total = 0;
 			completed = 0;
@@ -56,57 +66,91 @@ package egg82.patterns.command {
 			for each (var obj:Object in commands) {
 				total++;
 				
-				if (!(obj is Command)) {
+				if (!(obj is SerializableCommand)) {
 					completed++;
 					continue;
 				}
 				
 				if (!started) {
-					var command:Command = obj as Command;
-					
 					started = true;
 					
-					command.ON_COMPLETE.addOnce(onComplete);
-					command.start();
+					var command:SerializableCommand = obj as SerializableCommand;
+					command.startSerialized(startData);
 				}
 			}
 			
 			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
+				Observer.remove(Command.OBSERVERS, commandObserver);
+				dispatch(CommandEvent.COMPLETE);
 			}
 		}
 		
-		private function onComplete(sender:Object, data:Object):void {
-			completed++;
+		private function onCommandObserverNotify(sender:Object, event:String, data:Object):void {
+			if (event == CommandEvent.COMPLETE) {
+				handleData(sender as Command, data);
+			} else if (event == CommandEvent.ERROR) {
+				handleError(sender as Command, data);
+			}
+		}
+		
+		private function handleData(sender:Command, data:Object):void {
+			var obj:Object;
+			
+			for each (obj in commands) {
+				if (!(obj is SerializableCommand)) {
+					continue;
+				}
+				
+				if (obj === sender) {
+					completed++;
+					break;
+				}
+			}
 			
 			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
+				Observer.remove(Command.OBSERVERS, commandObserver);
+				dispatch(CommandEvent.COMPLETE);
 			}
 			
 			var i:uint = 0;
 			
-			for each (var obj:Object in commands) {
+			for each (obj in commands) {
 				if (i < completed) {
 					i++;
 					continue;
 				}
 				
-				if (!(obj is Command)) {
+				if (!(obj is SerializableCommand)) {
 					completed++;
 					i++;
 					continue;
 				}
 				
-				var command:Command = obj as Command;
-				
-				command.ON_COMPLETE.addOnce(onComplete);
-				command.start();
+				var command:SerializableCommand = obj as SerializableCommand;
+				command.startSerialized(data);
 				
 				return;
 			}
 			
 			if (completed == total) {
-				ON_COMPLETE.dispatch(this, null);
+				Observer.remove(Command.OBSERVERS, commandObserver);
+				dispatch(CommandEvent.COMPLETE);
+			}
+		}
+		
+		private function handleError(sender:Command, data:Object):void {
+			var obj:Object;
+			
+			for each (obj in commands) {
+				if (!(obj is SerializableCommand)) {
+					continue;
+				}
+				
+				if (obj === sender) {
+					Observer.remove(Command.OBSERVERS, commandObserver);
+					dispatch(CommandEvent.ERROR, data);
+					return;
+				}
 			}
 		}
 	}
