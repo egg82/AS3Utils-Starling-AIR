@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package egg82.engines {
+package egg82.mod {
 	import egg82.events.ModEngineEvent;
 	import egg82.events.ModEvent;
 	import egg82.mod.Mod;

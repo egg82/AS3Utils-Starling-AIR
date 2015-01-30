@@ -22,6 +22,7 @@
 
 package egg82.engines {
 	import egg82.base.BaseWindow;
+	import egg82.engines.interfaces.IInputEngine;
 	import egg82.enums.MouseEventType;
 	import egg82.enums.XboxButtonCodes;
 	import egg82.events.InputEngineEvent;
@@ -40,7 +41,7 @@ package egg82.engines {
 	 * @author egg82
 	 */
 	
-	public class InputEngine {
+	public class InputEngine implements IInputEngine {
 		//vars
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		

@@ -20,32 +20,46 @@
  * THE SOFTWARE.
  */
 
-package egg82.patterns {
-	import egg82.engines.InputEngine;
-	import egg82.engines.SoundEngine;
-	import egg82.engines.StateEngine;
+package egg82.engines.interfaces {
+	import egg82.base.BaseWindow;
+	import egg82.patterns.Observer;
+	import flash.display.Stage;
+	import flash.geom.Point;
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class ServiceLocator {
+	public interface IInputEngine {
 		//vars
-		private static var services:Array = new Array();
 		
 		//constructor
-		public function ServiceLocator() {
-			
-		}
 		
 		//public
-		public static function getService(type:String):Object {
-			return services[type];
-		}
-		public static function provideService(type:String, obj:Object):void {
-			services[type] = obj;
-		}
+		function addWindow(window:BaseWindow):void;
+		function removeWindow(window:BaseWindow):void;
+		
+		function isKeyDown(keyCode:uint):Boolean;
+		function isButtonDown(controller:uint, buttonCode:uint):Boolean;
+		
+		function get isLeftMouseDown():Boolean;
+		function get isMiddleMouseDown():Boolean;
+		function get isRightMouseDown():Boolean;
+		
+		function get mousePosition():Point;
+		function get mouseWheelPosition():int;
+		
+		function get lastStage():Stage;
+		
+		function get numControllers():uint;
+		function getTrigger(controller:uint, trigger:uint):Number;
+		function getStickProperties(controller:uint, stick:uint):Point;
+		function getStick(controller:uint, stick:uint):Point;
+		
+		function isUsingController(stickDeadZone:Number):Boolean;
+		
+		function update():void;
 		
 		//private
 		

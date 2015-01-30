@@ -23,6 +23,8 @@
 package egg82.engines {
 	import egg82.base.BaseState;
 	import egg82.base.BaseWindow;
+	import egg82.engines.interfaces.IInputEngine;
+	import egg82.engines.interfaces.IStateEngine;
 	import egg82.patterns.ServiceLocator;
 	import flash.events.TimerEvent;
 	import flash.utils.getTimer;
@@ -37,27 +39,27 @@ package egg82.engines {
 	 * @author egg82
 	 */
 	
-	public class StateEngine {
+	public class StateEngine implements IStateEngine {
 		//vars
-		public var updateFPS:Number = 60.0;
-		public var drawFPS:Number = 60.0;
-		public var useTimestep:Boolean = true;
+		private var _updateFps:Number = 60.0;
+		private var _drawFps:Number = 60.0;
+		private var _useTimestep:Boolean = true;
 		
 		private var states:Vector.<Vector.<BaseState>> = new Vector.<Vector.<BaseState>>();
 		private var windows:Vector.<BaseWindow> = new Vector.<BaseWindow>();
-		private var updateTimer:Timer = new Timer((1.0 / updateFPS) * 1000.0);
-		private var drawTimer:Timer = new Timer((1.0 / drawFPS) * 1000.0);
+		private var updateTimer:Timer = new Timer((1.0 / _updateFps) * 1000.0);
+		private var drawTimer:Timer = new Timer((1.0 / _drawFps) * 1000.0);
 		private var runOnce:Boolean;
 		
 		private var _deltaTime:Number = 0;
 		private var lastUpdateTime:Number = getTimer();
-		private var timestep:Number = updateFPS;
+		private var timestep:Number = _updateFps;
 		private var fixedTimestepAccumulator:Number;
 		
 		private var inits:Vector.<BaseState> = new Vector.<BaseState>();
 		private var initialized:Boolean = false;
 		
-		private var inputEngine:InputEngine = ServiceLocator.getService("input") as InputEngine;
+		private var inputEngine:IInputEngine = ServiceLocator.getService("input") as IInputEngine;
 		
 		//constructor
 		public function StateEngine() {
@@ -67,6 +69,25 @@ package egg82.engines {
 		}
 		
 		//public
+		public function get updateFps():Number {
+			return _updateFps;
+		}
+		public function set updateFps(val:Number):void {
+			_updateFps = val;
+		}
+		public function get drawFps():Number {
+			return _drawFps;
+		}
+		public function set drawFps(val:Number):void {
+			_drawFps = val;
+		}
+		public function get useTimestep():Boolean {
+			return _useTimestep;
+		}
+		public function set useTimestep(val:Boolean):void {
+			_useTimestep = val;
+		}
+		
 		public function initialize(initState:BaseState):void {
 			if (!initState) {
 				throw new Error("initState cannot be null");
@@ -78,7 +99,7 @@ package egg82.engines {
 			initialized = true;
 			
 			fixedTimestepAccumulator = 0;
-			timestep = updateFPS;
+			timestep = _updateFps;
 			
 			addWindow(null, initState);
 			Starling.all[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
@@ -288,7 +309,7 @@ package egg82.engines {
 			var steps:uint;
 			var i:uint;
 			
-			if (!updateFPS) {
+			if (!_updateFps) {
 				return;
 			}
 			
@@ -304,10 +325,10 @@ package egg82.engines {
 			_deltaTime = time - lastUpdateTime;
 			lastUpdateTime = time;
 			
-			if (updateFPS < 0) {
+			if (_updateFps < 0) {
 				updateTimer.delay = (1.0 / 60) * 1000.0;
 			} else {
-				updateTimer.delay = (1.0 / updateFPS) * 1000.0;
+				updateTimer.delay = (1.0 / _updateFps) * 1000.0;
 			}
 			
 			steps = calculateSteps();
@@ -317,7 +338,7 @@ package egg82.engines {
 			for (i = 0; i < states.length; i++) {
 				for (var j:uint = 0; j < states[i].length; j++) {
 					if (j == 0 || states[i][j].forceUpdate) {
-						if (useTimestep) {
+						if (_useTimestep) {
 							for (var k:uint = 0; k < steps; k++) {
 								if (states[i][j].active) {
 									states[i][j].update();
@@ -333,14 +354,14 @@ package egg82.engines {
 			}
 		}
 		private function onDraw(e:TimerEvent):void {
-			if (!drawFPS) {
+			if (!_drawFps) {
 				return;
 			}
 			
-			if (drawFPS < 0) {
+			if (_drawFps < 0) {
 				drawTimer.delay = (1.0 / 60) * 1000.0;
 			} else {
-				drawTimer.delay = (1.0 / drawFPS) * 1000.0;
+				drawTimer.delay = (1.0 / _drawFps) * 1000.0;
 			}
 			
 			for (var i:uint = 0; i < states.length; i++) {

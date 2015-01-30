@@ -20,32 +20,39 @@
  * THE SOFTWARE.
  */
 
-package egg82.patterns {
-	import egg82.engines.InputEngine;
-	import egg82.engines.SoundEngine;
-	import egg82.engines.StateEngine;
+package egg82.engines.interfaces {
+	import egg82.custom.CustomSound;
+	import egg82.custom.CustomWavSound;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class ServiceLocator {
+	public interface ISoundEngine {
 		//vars
-		private static var services:Array = new Array();
 		
 		//constructor
-		public function ServiceLocator() {
-			
-		}
 		
 		//public
-		public static function getService(type:String):Object {
-			return services[type];
-		}
-		public static function provideService(type:String, obj:Object):void {
-			services[type] = obj;
-		}
+		function playWav(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int;
+		function playMp3(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int;
+		
+		function stopWav(wav:uint):void;
+		function stopMp3(mp3:uint):void;
+		
+		function getWav(index:uint):CustomWavSound;
+		function getMp3(index:uint):CustomSound;
+		
+		function getWavIndex(wav:CustomWavSound):int;
+		function getMp3Index(mp3:CustomSound):int;
+		
+		function get numPlayingWavs():uint;
+		function get numPlayingMp3s():uint;
+		
+		function setWavVolume(wav:uint, volume:Number = 1):void;
+		function setMp3Volume(mp3:uint, volume:Number = 1):void;
 		
 		//private
 		

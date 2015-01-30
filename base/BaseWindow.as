@@ -21,7 +21,7 @@
  */
 
 package egg82.base {
-	import egg82.engines.StateEngine;
+	import egg82.engines.interfaces.IStateEngine;
 	import egg82.events.BaseWindowEvent;
 	import egg82.patterns.Observer;
 	import egg82.patterns.ServiceLocator;
@@ -42,7 +42,7 @@ package egg82.base {
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var _starling:Starling = null;
-		private var stateEngine:StateEngine  = ServiceLocator.getService("state") as StateEngine;
+		private var stateEngine:IStateEngine  = ServiceLocator.getService("state") as IStateEngine;
 		
 		//constructor
 		public function BaseWindow(bounds:Rectangle, resizable:Boolean = false, border:Boolean = true) {

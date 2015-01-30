@@ -23,6 +23,7 @@
 package egg82.engines {
 	import egg82.custom.CustomSound;
 	import egg82.custom.CustomWavSound;
+	import egg82.engines.interfaces.ISoundEngine;
 	import flash.events.Event;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
@@ -34,7 +35,7 @@ package egg82.engines {
 	 * @author egg82
 	 */
 	
-	public class SoundEngine {
+	public class SoundEngine implements ISoundEngine {
 		//vars
 		private var playingMp3s:Vector.<SoundChannel> = new Vector.<SoundChannel>();
 		private var playingMp3Sounds:Vector.<CustomSound> = new Vector.<CustomSound>();

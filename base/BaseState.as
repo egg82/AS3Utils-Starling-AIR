@@ -21,7 +21,7 @@
  */
 
 package egg82.base {
-	import egg82.engines.StateEngine;
+	import egg82.engines.interfaces.IStateEngine;
 	import egg82.patterns.Observer;
 	import egg82.patterns.ServiceLocator;
 	import starling.core.Starling;
@@ -42,7 +42,7 @@ package egg82.base {
 		protected var _prevState:BaseState;
 		protected var _nextState:BaseState;
 		
-		private var stateEngine:StateEngine = ServiceLocator.getService("state") as StateEngine;
+		private var stateEngine:IStateEngine = ServiceLocator.getService("state") as IStateEngine;
 		
 		//constructor
 		public function BaseState() {

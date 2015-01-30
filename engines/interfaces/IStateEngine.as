@@ -20,32 +20,46 @@
  * THE SOFTWARE.
  */
 
-package egg82.patterns {
-	import egg82.engines.InputEngine;
-	import egg82.engines.SoundEngine;
-	import egg82.engines.StateEngine;
+package egg82.engines.interfaces {
+	import egg82.base.BaseState;
+	import egg82.base.BaseWindow;
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class ServiceLocator {
+	public interface IStateEngine {
 		//vars
-		private static var services:Array = new Array();
 		
 		//constructor
-		public function ServiceLocator() {
-			
-		}
 		
 		//public
-		public static function getService(type:String):Object {
-			return services[type];
-		}
-		public static function provideService(type:String, obj:Object):void {
-			services[type] = obj;
-		}
+		function get updateFps():Number;
+		function set updateFps(val:Number):void;
+		function get drawFps():Number;
+		function set drawFps(val:Number):void;
+		function get useTimestep():Boolean;
+		function set useTimestep(val:Boolean):void;
+		
+		function initialize(initState:BaseState):void;
+		
+		function addState(newState:BaseState, window:uint = 0, addAt:uint = 0):void;
+		function swapStates(newState:BaseState, window:uint = 0, swapAt:uint = 0):void;
+		function removeState(index:uint, window:uint = 0):void;
+		
+		function getState(index:uint, window:uint = 0):BaseState;
+		function numStates(window:uint = 0):uint;
+		
+		function addWindow(window:BaseWindow, initState:BaseState):void;
+		function removeWindow(index:uint):void;
+		
+		function getWindow(index:uint):BaseWindow;
+		function get numWindows():uint;
+		
+		function get deltaTime():Number;
+		
+		function resize(window:uint = 0):void;
 		
 		//private
 		
