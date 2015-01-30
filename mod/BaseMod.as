@@ -37,8 +37,6 @@ package egg82.mod {
 		//vars
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		protected const ON_MESSAGE:Signal = new Signal(Object, String);
-		
 		private var incoming:Array = new Array();
 		private var outgoing:Array = new Array();
 		

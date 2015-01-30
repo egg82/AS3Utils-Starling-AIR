@@ -21,9 +21,9 @@
  */
 
 package egg82.math.collision.raycast {
+	import egg82.math.Vector2D;
 	import flash.display.BitmapData;
 	import starling.display.Graphics;
-	import egg82.math.Vector2D;
 	
 	/**
 	 * ...

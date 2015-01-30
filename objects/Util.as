@@ -21,11 +21,9 @@
  */
 
 package egg82.objects {
-	import egg82.engines.StateEngine;
 	import flash.display.BitmapData;
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
-	import flash.system.Security;
 	import flash.ui.Mouse;
 	import flash.ui.MouseCursor;
 	import flash.ui.MouseCursorData;

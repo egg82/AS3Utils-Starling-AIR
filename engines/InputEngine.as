@@ -23,13 +23,12 @@
 package egg82.engines {
 	import egg82.base.BaseWindow;
 	import egg82.enums.MouseEventType;
-	import egg82.events.InputEngineEvent;
 	import egg82.enums.XboxButtonCodes;
+	import egg82.events.InputEngineEvent;
 	import egg82.patterns.Observer;
 	import flash.display.Stage;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import io.arkeus.ouya.controller.GameController;
 	import io.arkeus.ouya.controller.Xbox360Controller;
@@ -45,21 +44,21 @@ package egg82.engines {
 		//vars
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
-		private static var keys:Vector.<Boolean> = new Vector.<Boolean>();
-		private static var xboxControllers:Vector.<Xbox360Controller> = new Vector.<Xbox360Controller>();
+		private var keys:Vector.<Boolean> = new Vector.<Boolean>();
+		private var xboxControllers:Vector.<Xbox360Controller> = new Vector.<Xbox360Controller>();
 		
-		private static var _mouseLocation:Point = new Point();
-		private static var _stickProperties:Point = new Point();
-		private static var _stickPosition:Point = new Point();
-		private static var _mouseWheel:int = 0;
+		private var _mouseLocation:Point = new Point();
+		private var _stickProperties:Point = new Point();
+		private var _stickPosition:Point = new Point();
+		private var _mouseWheel:int = 0;
 		
-		private static var _leftDown:Boolean = false;
-		private static var _middleDown:Boolean = false;
-		private static var _rightDown:Boolean = false;
+		private var _leftDown:Boolean = false;
+		private var _middleDown:Boolean = false;
+		private var _rightDown:Boolean = false;
 		
-		private static var _lastStage:Stage = null;
+		private var _lastStage:Stage = null;
 		
-		private static var _lastUsingController:Boolean = false;
+		private var _lastUsingController:Boolean = false;
 		
 		//constructor
 		public function InputEngine() {
@@ -85,7 +84,7 @@ package egg82.engines {
 		}
 		
 		//public
-		public static function addWindow(window:BaseWindow):void {
+		public function addWindow(window:BaseWindow):void {
 			window.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			window.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 			
@@ -100,7 +99,7 @@ package egg82.engines {
 			window.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMiddleMouseUp);
 			window.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUp);
 		}
-		public static function removeWindow(window:BaseWindow):void {
+		public function removeWindow(window:BaseWindow):void {
 			window.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			window.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 			
@@ -116,14 +115,14 @@ package egg82.engines {
 			window.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUp);
 		}
 		
-		public static function isKeyDown(keyCode:uint):Boolean {
+		public function isKeyDown(keyCode:uint):Boolean {
 			if (keyCode < keys.length) {
 				return keys[keyCode];
 			} else {
 				return false;
 			}
 		}
-		public static function isButtonDown(controller:uint, buttonCode:uint):Boolean {
+		public function isButtonDown(controller:uint, buttonCode:uint):Boolean {
 			if (controller >= xboxControllers.length) {
 				return false;
 			}
@@ -161,38 +160,38 @@ package egg82.engines {
 			return false;
 		}
 		
-		public static function get isLeftMouseDown():Boolean {
+		public function get isLeftMouseDown():Boolean {
 			return _leftDown;
 		}
-		public static function get isMiddleMouseDown():Boolean {
+		public function get isMiddleMouseDown():Boolean {
 			return _middleDown;
 		}
-		public static function get isRightMouseDown():Boolean {
+		public function get isRightMouseDown():Boolean {
 			return _rightDown;
 		}
 		
-		public static function get mousePosition():Point {
+		public function get mousePosition():Point {
 			return _mouseLocation.clone();
 		}
-		public static function get mouseWheelPosition():int {
+		public function get mouseWheelPosition():int {
 			return _mouseWheel;
 		}
 		
-		public static function get lastStage():Stage {
+		public function get lastStage():Stage {
 			return _lastStage;
 		}
 		
-		public static function get numControllers():uint {
+		public function get numControllers():uint {
 			return xboxControllers.length;
 		}
-		public static function getTrigger(controller:uint, trigger:uint):Number {
+		public function getTrigger(controller:uint, trigger:uint):Number {
 			if (controller >= xboxControllers.length || trigger > 1) {
 				return 0;
 			}
 			
 			return (trigger == 0) ? xboxControllers[controller].lt.value : xboxControllers[controller].rt.value;
 		}
-		public static function getStickProperties(controller:uint, stick:uint):Point {
+		public function getStickProperties(controller:uint, stick:uint):Point {
 			_stickProperties.x = 0;
 			_stickProperties.y = 0;
 			
@@ -205,7 +204,7 @@ package egg82.engines {
 			
 			return _stickProperties.clone();
 		}
-		public static function getStick(controller:uint, stick:uint):Point {
+		public function getStick(controller:uint, stick:uint):Point {
 			_stickPosition.x = 0;
 			_stickPosition.y = 0;
 			
@@ -219,7 +218,7 @@ package egg82.engines {
 			return _stickPosition.clone();
 		}
 		
-		public static function isUsingController(stickDeadZone:Number):Boolean {
+		public function isUsingController(stickDeadZone:Number):Boolean {
 			if (xboxControllers.length == 0) {
 				return false;
 			}
@@ -251,13 +250,13 @@ package egg82.engines {
 			return _lastUsingController;
 		}
 		
-		public static function update():void {
+		public function update():void {
 			_mouseWheel = 0;
 			controllers();
 		}
 		
 		//private
-		private static function controllers():void {
+		private function controllers():void {
 			var i:uint;
 			
 			while (ControllerInput.hasReadyController()) {
@@ -478,7 +477,7 @@ package egg82.engines {
 			}
 		}
 		
-		private static function onKeyDown(e:KeyboardEvent):void {
+		private function onKeyDown(e:KeyboardEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -496,7 +495,7 @@ package egg82.engines {
 				"keyCode": e.keyCode
 			});
 		}
-		private static function onKeyUp(e:KeyboardEvent):void {
+		private function onKeyUp(e:KeyboardEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			keys[e.keyCode] = false;
@@ -511,7 +510,7 @@ package egg82.engines {
 			});
 		}
 		
-		private static function onMouseMove(e:MouseEvent):void {
+		private function onMouseMove(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -530,7 +529,7 @@ package egg82.engines {
 				"newPoint": new Point(e.stageX, e.stageY)
 			});
 		}
-		private static function onMouseWheel(e:MouseEvent):void {
+		private function onMouseWheel(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -545,7 +544,7 @@ package egg82.engines {
 			});
 		}
 		
-		private static function onMouseDown(e:MouseEvent):void {
+		private function onMouseDown(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -559,7 +558,7 @@ package egg82.engines {
 				"type": MouseEventType.LEFT
 			});
 		}
-		private static function onMiddleMouseDown(e:MouseEvent):void {
+		private function onMiddleMouseDown(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -573,7 +572,7 @@ package egg82.engines {
 				"type": MouseEventType.MIDDLE
 			});
 		}
-		private static function onRightMouseDown(e:MouseEvent):void {
+		private function onRightMouseDown(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -588,7 +587,7 @@ package egg82.engines {
 			});
 		}
 		
-		private static function onMouseUp(e:MouseEvent):void {
+		private function onMouseUp(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -602,7 +601,7 @@ package egg82.engines {
 				"type": MouseEventType.LEFT
 			});
 		}
-		private static function onMiddleMouseUp(e:MouseEvent):void {
+		private function onMiddleMouseUp(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -616,7 +615,7 @@ package egg82.engines {
 				"type": MouseEventType.MIDDLE
 			});
 		}
-		private static function onRightMouseUp(e:MouseEvent):void {
+		private function onRightMouseUp(e:MouseEvent):void {
 			var stage:Stage = e.target as Stage;
 			
 			_lastUsingController = false;
@@ -631,7 +630,7 @@ package egg82.engines {
 			});
 		}
 		
-		private static function dispatch(event:String, data:Object):void {
+		private function dispatch(event:String, data:Object):void {
 			Observer.dispatch(OBSERVERS, null, event, data);
 		}
 	}

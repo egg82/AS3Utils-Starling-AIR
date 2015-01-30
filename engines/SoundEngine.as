@@ -36,11 +36,11 @@ package egg82.engines {
 	
 	public class SoundEngine {
 		//vars
-		private static var playingMp3s:Vector.<SoundChannel> = new Vector.<SoundChannel>();
-		private static var playingMp3Sounds:Vector.<CustomSound> = new Vector.<CustomSound>();
+		private var playingMp3s:Vector.<SoundChannel> = new Vector.<SoundChannel>();
+		private var playingMp3Sounds:Vector.<CustomSound> = new Vector.<CustomSound>();
 		
-		private static var playingWavs:Vector.<WavSoundChannel> = new Vector.<WavSoundChannel>();
-		private static var playingWavSounds:Vector.<CustomWavSound> = new Vector.<CustomWavSound>();
+		private var playingWavs:Vector.<WavSoundChannel> = new Vector.<WavSoundChannel>();
+		private var playingWavSounds:Vector.<CustomWavSound> = new Vector.<CustomWavSound>();
 		
 		//constructor
 		public function SoundEngine() {
@@ -48,7 +48,7 @@ package egg82.engines {
 		}
 		
 		//public
-		public static function playWav(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
+		public function playWav(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
 			if (!data || data.length == 0) {
 				return -1;
 			}
@@ -70,7 +70,7 @@ package egg82.engines {
 			
 			return playingWavs.length - 1;
 		}
-		public static function playMp3(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
+		public function playMp3(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
 			if (!data || data.length == 0) {
 				return -1;
 			}
@@ -95,7 +95,7 @@ package egg82.engines {
 			return playingMp3s.length - 1;
 		}
 		
-		public static function stopWav(wav:uint):void {
+		public function stopWav(wav:uint):void {
 			if (wav >= playingWavs.length) {
 				return;
 			}
@@ -106,7 +106,7 @@ package egg82.engines {
 			playingWavSounds.splice(wav, 1);
 			playingWavs.splice(wav, 1);
 		}
-		public static function stopMp3(mp3:uint):void {
+		public function stopMp3(mp3:uint):void {
 			if (mp3 >= playingMp3s.length) {
 				return;
 			}
@@ -118,33 +118,33 @@ package egg82.engines {
 			playingMp3s.splice(mp3, 1);
 		}
 		
-		public static function getWav(index:uint):CustomWavSound {
+		public function getWav(index:uint):CustomWavSound {
 			if (index >= playingWavs.length) {
 				return null;
 			}
 			
-			return playingWavs[index];
+			return playingWavSounds[index];
 		}
-		public static function getMp3(index:uint):CustomSound {
+		public function getMp3(index:uint):CustomSound {
 			if (index >= playingMp3s.length) {
 				return null;
 			}
 			
-			return playingMp3s[index];
+			return playingMp3Sounds[index];
 		}
 		
-		public static function getWavIndex(wav:CustomWavSound):int {
+		public function getWavIndex(wav:CustomWavSound):int {
 			for (var i:uint = 0; i < playingWavs.length; i++) {
-				if (wav === playingWavs[i]) {
+				if (wav === playingWavSounds[i]) {
 					return i;
 				}
 			}
 			
 			return -1;
 		}
-		public static function getMp3Index(mp3:CustomSound):int {
+		public function getMp3Index(mp3:CustomSound):int {
 			for (var i:uint = 0; i < playingMp3s.length; i++) {
-				if (mp3 === playingMp3s[i]) {
+				if (mp3 === playingMp3Sounds[i]) {
 					return i;
 				}
 			}
@@ -152,14 +152,14 @@ package egg82.engines {
 			return -1;
 		}
 		
-		public static function get numPlayingWavs():uint {
+		public function get numPlayingWavs():uint {
 			return playingWavs.length;
 		}
-		public static function get numPlayingMp3s():uint {
+		public function get numPlayingMp3s():uint {
 			return playingMp3s.length;
 		}
 		
-		public static function setWavVolume(wav:uint, volume:Number = 1):void {
+		public function setWavVolume(wav:uint, volume:Number = 1):void {
 			if (wav >= playingWavs.length) {
 				return;
 			}
@@ -173,7 +173,7 @@ package egg82.engines {
 			
 			//playingWavs[wav].soundTransform = new SoundTransform(volume);
 		}
-		public static function setMp3Volume(mp3:uint, volume:Number = 1):void {
+		public function setMp3Volume(mp3:uint, volume:Number = 1):void {
 			if (mp3 >= playingMp3s.length) {
 				return;
 			}
@@ -189,7 +189,7 @@ package egg82.engines {
 		}
 		
 		//private
-		private static function onMp3Complete(e:Event):void {
+		private function onMp3Complete(e:Event):void {
 			var channel:SoundChannel = e.target as SoundChannel;
 			var sound:CustomSound;
 			var soundIndex:uint;
@@ -213,7 +213,7 @@ package egg82.engines {
 				playingMp3s.splice(soundIndex, 1);
 			}
 		}
-		private static function onWavComplete(e:Event):void {
+		private function onWavComplete(e:Event):void {
 			var channel:WavSoundChannel = e.target as WavSoundChannel;
 			var sound:CustomWavSound;
 			var soundIndex:uint;

@@ -23,6 +23,7 @@
 package egg82.engines {
 	import egg82.base.BaseState;
 	import egg82.base.BaseWindow;
+	import egg82.patterns.ServiceLocator;
 	import flash.events.TimerEvent;
 	import flash.utils.getTimer;
 	import flash.utils.Timer;
@@ -38,42 +39,54 @@ package egg82.engines {
 	
 	public class StateEngine {
 		//vars
-		public static var updateFPS:Number = 60.0;
-		public static var drawFPS:Number = 60.0;
-		public static var useTimestep:Boolean = true;
+		public var updateFPS:Number = 60.0;
+		public var drawFPS:Number = 60.0;
+		public var useTimestep:Boolean = true;
 		
-		private static var states:Vector.<Vector.<BaseState>> = new Vector.<Vector.<BaseState>>();
-		private static var windows:Vector.<BaseWindow> = new Vector.<BaseWindow>();
-		private static var updateTimer:Timer = new Timer((1.0 / updateFPS) * 1000.0);
-		private static var drawTimer:Timer = new Timer((1.0 / drawFPS) * 1000.0);
-		private static var runOnce:Boolean;
+		private var states:Vector.<Vector.<BaseState>> = new Vector.<Vector.<BaseState>>();
+		private var windows:Vector.<BaseWindow> = new Vector.<BaseWindow>();
+		private var updateTimer:Timer = new Timer((1.0 / updateFPS) * 1000.0);
+		private var drawTimer:Timer = new Timer((1.0 / drawFPS) * 1000.0);
+		private var runOnce:Boolean;
 		
-		private static var _deltaTime:Number = 0;
-		private static var lastUpdateTime:Number = getTimer();
-		private static var timestep:Number = updateFPS;
-		private static var fixedTimestepAccumulator:Number;
+		private var _deltaTime:Number = 0;
+		private var lastUpdateTime:Number = getTimer();
+		private var timestep:Number = updateFPS;
+		private var fixedTimestepAccumulator:Number;
 		
-		private static var inits:Vector.<BaseState> = new Vector.<BaseState>();
+		private var inits:Vector.<BaseState> = new Vector.<BaseState>();
+		private var initialized:Boolean = false;
+		
+		private var inputEngine:InputEngine = ServiceLocator.getService("input") as InputEngine;
 		
 		//constructor
-		public function StateEngine(initState:BaseState) {
-			if (!initState) {
-				throw new Error("initState cannot be null");
-			}
-			
+		public function StateEngine() {
 			runOnce = false;
 			
 			Starling.all[0].stage.addEventListener(ResizeEvent.RESIZE, onResize);
-			
-			fixedTimestepAccumulator = 0;
-			timestep = StateEngine.updateFPS;
-			
-			addWindow(null, initState);
-			Starling.all[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 		}
 		
 		//public
-		public static function addState(newState:BaseState, window:uint = 0, addAt:uint = 0):void {
+		public function initialize(initState:BaseState):void {
+			if (!initState) {
+				throw new Error("initState cannot be null");
+			}
+			if (initialized) {
+				throw new Error("StateEngine already initialized");
+			}
+			
+			initialized = true;
+			
+			fixedTimestepAccumulator = 0;
+			timestep = updateFPS;
+			
+			addWindow(null, initState);
+			Starling.all[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+			
+			resize();
+		}
+		
+		public function addState(newState:BaseState, window:uint = 0, addAt:uint = 0):void {
 			if (!newState || window >= windows.length || addAt > states[window].length) {
 				return;
 			}
@@ -99,7 +112,7 @@ package egg82.engines {
 			
 			newState.window = windows[window];
 			newState.create();
-			InputEngine.update();
+			inputEngine.update();
 			newState.update();
 			newState.draw();
 			
@@ -108,7 +121,7 @@ package egg82.engines {
 				drawTimer.start();
 			}
 		}
-		public static function swapStates(newState:BaseState, window:uint = 0, swapAt:uint = 0):void {
+		public function swapStates(newState:BaseState, window:uint = 0, swapAt:uint = 0):void {
 			var oldState:BaseState;
 			
 			if (!newState || window >= windows.length || swapAt >= states[window].length) {
@@ -141,7 +154,7 @@ package egg82.engines {
 			
 			newState.window = windows[window];
 			newState.create();
-			InputEngine.update();
+			inputEngine.update();
 			newState.update();
 			newState.draw();
 			
@@ -150,7 +163,7 @@ package egg82.engines {
 				drawTimer.start();
 			}
 		}
-		public static function removeState(index:uint, window:uint = 0):void {
+		public function removeState(index:uint, window:uint = 0):void {
 			var state:BaseState;
 			
 			if (window >= windows.length || index >= states[window].length) {
@@ -171,14 +184,14 @@ package egg82.engines {
 			}
 		}
 		
-		public static function getState(index:uint, window:uint = 0):BaseState {
+		public function getState(index:uint, window:uint = 0):BaseState {
 			if (window >= windows.length || index >= states[window].length) {
 				return null;
 			}
 			
 			return states[window][index];
 		}
-		public static function numStates(window:uint = 0):uint {
+		public function numStates(window:uint = 0):uint {
 			if (window >= windows.length) {
 				return 0;
 			}
@@ -186,7 +199,7 @@ package egg82.engines {
 			return states[window].length as uint;
 		}
 		
-		public static function addWindow(window:BaseWindow, initState:BaseState):void {
+		public function addWindow(window:BaseWindow, initState:BaseState):void {
 			if ((!window && windows.length > 0) || !initState) {
 				return;
 			}
@@ -203,7 +216,7 @@ package egg82.engines {
 			inits.push(initState);
 			
 			if (window) {
-				InputEngine.addWindow(window);
+				inputEngine.addWindow(window);
 				
 				window.activate();
 				window.create();
@@ -212,7 +225,7 @@ package egg82.engines {
 				window.starling.addEventListener(Event.CONTEXT3D_CREATE, onWindowContextCreated);
 			}
 		}
-		public static function removeWindow(index:uint):void {
+		public function removeWindow(index:uint):void {
 			var window:BaseWindow;
 			var tStates:Vector.<BaseState>;
 			var init:BaseState;
@@ -236,28 +249,28 @@ package egg82.engines {
 				window.starling.stage.removeChild(init);
 			}
 			
-			InputEngine.removeWindow(window);
+			inputEngine.removeWindow(window);
 			
 			window.destroy();
 			window.close();
 		}
 		
-		public static function getWindow(index:uint):BaseWindow {
+		public function getWindow(index:uint):BaseWindow {
 			if (index >= windows.length) {
 				return null;
 			}
 			
 			return windows[index];
 		}
-		public static function get numWindows():uint {
+		public function get numWindows():uint {
 			return windows.length as uint;
 		}
 		
-		public static function get deltaTime():Number {
+		public function get deltaTime():Number {
 			return _deltaTime;
 		}
 		
-		public static function resize(window:uint = 0):void {
+		public function resize(window:uint = 0):void {
 			if (window >= windows.length) {
 				return;
 			}
@@ -270,7 +283,7 @@ package egg82.engines {
 		}
 		
 		//private
-		private static function onUpdate(e:TimerEvent):void {
+		private function onUpdate(e:TimerEvent):void {
 			var time:Number;
 			var steps:uint;
 			var i:uint;
@@ -299,7 +312,7 @@ package egg82.engines {
 			
 			steps = calculateSteps();
 			
-			InputEngine.update();
+			inputEngine.update();
 			
 			for (i = 0; i < states.length; i++) {
 				for (var j:uint = 0; j < states[i].length; j++) {
@@ -319,7 +332,7 @@ package egg82.engines {
 				}
 			}
 		}
-		private static function onDraw(e:TimerEvent):void {
+		private function onDraw(e:TimerEvent):void {
 			if (!drawFPS) {
 				return;
 			}
@@ -341,7 +354,7 @@ package egg82.engines {
 			}
 		}
 		
-		private static function calculateSteps():uint {
+		private function calculateSteps():uint {
 			var steps:uint;
 			
 			fixedTimestepAccumulator += _deltaTime / 1000;
@@ -354,7 +367,7 @@ package egg82.engines {
 			return steps;
 		}
 		
-		private static function onResize(e:ResizeEvent):void {
+		private function onResize(e:ResizeEvent):void {
 			Starling.all[0].viewPort.width = e.width;
 			Starling.all[0].viewPort.height = e.height;
 			
@@ -365,7 +378,7 @@ package egg82.engines {
 				states[0][i].resize();
 			}
 		}
-		private static function onWindowResize(e:ResizeEvent):void {
+		private function onWindowResize(e:ResizeEvent):void {
 			var stage:Stage = e.target as Stage;
 			var window:uint = 0;
 			var i:uint;
@@ -391,7 +404,7 @@ package egg82.engines {
 			}
 		}
 		
-		private static function onContextCreated(e:Event):void {
+		private function onContextCreated(e:Event):void {
 			Starling.all[0].removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 			
 			addState(inits[0]);
@@ -404,7 +417,7 @@ package egg82.engines {
 			updateTimer.start();
 			drawTimer.start();
 		}
-		private static function onWindowContextCreated(e:Event):void {
+		private function onWindowContextCreated(e:Event):void {
 			var starling:Starling = e.target as Starling;
 			var window:uint = 0;
 			

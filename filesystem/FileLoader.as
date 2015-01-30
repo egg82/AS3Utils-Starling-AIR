@@ -21,8 +21,8 @@
  */
 
 package egg82.filesystem {
-	import egg82.patterns.Observer;
 	import egg82.events.FileLoaderEvent;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;

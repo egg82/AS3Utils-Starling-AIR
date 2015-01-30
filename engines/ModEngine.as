@@ -23,9 +23,9 @@
 package egg82.engines {
 	import egg82.events.ModEngineEvent;
 	import egg82.events.ModEvent;
+	import egg82.mod.Mod;
 	import egg82.patterns.Observer;
 	import flash.utils.ByteArray;
-	import egg82.mod.Mod;
 	
 	/**
 	 * ...

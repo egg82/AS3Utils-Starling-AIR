@@ -21,10 +21,10 @@
  */
 
 package egg82.math.collision.raycast {
-	import flash.display.BitmapData;
-	import starling.display.Graphics;
-	import flash.geom.Point;
 	import egg82.math.Vector2D;
+	import flash.display.BitmapData;
+	import flash.geom.Point;
+	import starling.display.Graphics;
 	
 	/**
 	 * ...

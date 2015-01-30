@@ -21,12 +21,12 @@
  */
 
 package egg82.math.collision {
+	import egg82.math.Vector2D;
 	import flash.display.BitmapData;
 	import flash.display.BitmapDataChannel;
 	import flash.display.DisplayObject;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import egg82.math.Vector2D;
 	
 	/**
 	 * ...

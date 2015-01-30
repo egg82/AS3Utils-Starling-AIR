@@ -22,6 +22,7 @@
 
 package egg82.net {
 	import egg82.events.URLLoaderEvent;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
@@ -30,14 +31,13 @@ package egg82.net {
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import egg82.patterns.Observer;
 	
 	/**
 	 * ...
 	 * @author ...
 	 */
 	
-	public class URLLoader {
+	public class SimpleURLLoader {
 		//vars
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
@@ -45,7 +45,7 @@ package egg82.net {
 		private var _loading:Boolean = false;
 		
 		//constructor
-		public function URLLoader() {
+		public function SimpleURLLoader() {
 			loader.dataFormat = URLLoaderDataFormat.BINARY;
 			
 			loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onResponseStatus);

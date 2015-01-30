@@ -22,6 +22,7 @@
 
 package egg82.net {
 	import egg82.events.TCPServerEvent;
+	import egg82.patterns.Observer;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.OutputProgressEvent;
@@ -33,7 +34,6 @@ package egg82.net {
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
-	import egg82.patterns.Observer;
 	
 	/**
 	 * ...

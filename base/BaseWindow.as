@@ -24,6 +24,7 @@ package egg82.base {
 	import egg82.engines.StateEngine;
 	import egg82.events.BaseWindowEvent;
 	import egg82.patterns.Observer;
+	import egg82.patterns.ServiceLocator;
 	import flash.display.NativeWindow;
 	import flash.display.NativeWindowInitOptions;
 	import flash.display.NativeWindowSystemChrome;
@@ -41,6 +42,7 @@ package egg82.base {
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var _starling:Starling = null;
+		private var stateEngine:StateEngine  = ServiceLocator.getService("state") as StateEngine;
 		
 		//constructor
 		public function BaseWindow(bounds:Rectangle, resizable:Boolean = false, border:Boolean = true) {
@@ -76,9 +78,9 @@ package egg82.base {
 		
 		//private
 		private function onClosing(e:Event):void {
-			for (var i:uint = 0; i < StateEngine.numWindows; i++) {
-				if (StateEngine.getWindow(i) === this) {
-					StateEngine.removeWindow(i);
+			for (var i:uint = 0; i < stateEngine.numWindows; i++) {
+				if (stateEngine.getWindow(i) === this) {
+					stateEngine.removeWindow(i);
 					break;
 				}
 			}

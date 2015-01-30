@@ -81,6 +81,10 @@ package egg82.base {
 			removeChildren(0, -1, true);
 		}
 		
+		public function swapStateBuffer():void {
+			
+		}
+		
 		public function get graphics():Graphics {
 			return _GRAPHICS;
 		}

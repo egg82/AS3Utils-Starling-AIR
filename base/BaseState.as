@@ -21,7 +21,9 @@
  */
 
 package egg82.base {
+	import egg82.engines.StateEngine;
 	import egg82.patterns.Observer;
+	import egg82.patterns.ServiceLocator;
 	import starling.core.Starling;
 	
 	/**
@@ -36,6 +38,11 @@ package egg82.base {
 		public var active:Boolean = true;
 		public var forceUpdate:Boolean = false;
 		private var _window:BaseWindow = null;
+		
+		protected var _prevState:BaseState;
+		protected var _nextState:BaseState;
+		
+		private var stateEngine:StateEngine = ServiceLocator.getService("state") as StateEngine;
 		
 		//constructor
 		public function BaseState() {
@@ -59,6 +66,39 @@ package egg82.base {
 		//private
 		protected final function dispatch(event:String, data:Object = null):void {
 			Observer.dispatch(OBSERVERS, this, event, data);
+		}
+		
+		protected function prevState():void {
+			if (!_prevState) {
+				return;
+			}
+			
+			if (!window) {
+				stateEngine.swapStates(_prevState);
+			} else {
+				for (var i:uint = 0; i < stateEngine.numWindows; i++) {
+					if (window === stateEngine.getWindow(i)) {
+						stateEngine.swapStates(_prevState, i);
+						return;
+					}
+				}
+			}
+		}
+		protected function nextState():void {
+			if (!_nextState) {
+				return;
+			}
+			
+			if (!window) {
+				stateEngine.swapStates(_nextState);
+			} else {
+				for (var i:uint = 0; i < stateEngine.numWindows; i++) {
+					if (window === stateEngine.getWindow(i)) {
+						stateEngine.swapStates(_nextState, i);
+						return;
+					}
+				}
+			}
 		}
 	}
 }

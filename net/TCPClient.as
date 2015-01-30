@@ -28,7 +28,6 @@ package egg82.net {
 	import flash.events.OutputProgressEvent;
 	import flash.events.ProgressEvent;
 	import flash.events.SecurityErrorEvent;
-	import flash.events.TimerEvent;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	
