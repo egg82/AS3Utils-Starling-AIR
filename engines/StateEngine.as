@@ -59,13 +59,11 @@ package egg82.engines {
 		private var inits:Vector.<BaseState> = new Vector.<BaseState>();
 		private var initialized:Boolean = false;
 		
-		private var inputEngine:IInputEngine = ServiceLocator.getService("input") as IInputEngine;
+		private var inputEngine:IInputEngine;
 		
 		//constructor
 		public function StateEngine() {
-			runOnce = false;
 			
-			Starling.all[0].stage.addEventListener(ResizeEvent.RESIZE, onResize);
 		}
 		
 		//public
@@ -97,6 +95,15 @@ package egg82.engines {
 			}
 			
 			initialized = true;
+			
+			inputEngine = ServiceLocator.getService("input") as IInputEngine;
+			if (!inputEngine) {
+				throw new Error("InputEngine must be initialized");
+			}
+			
+			runOnce = false;
+			
+			Starling.all[0].stage.addEventListener(ResizeEvent.RESIZE, onResize);
 			
 			fixedTimestepAccumulator = 0;
 			timestep = _updateFps;

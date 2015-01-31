@@ -39,6 +39,7 @@ package egg82.engines.nulls {
 			
 		}
 		
+		//public
 		public function playWav(data:ByteArray, repeat:Boolean = false, volume:Number = 1):int {
 			return 0;
 		}
@@ -80,8 +81,6 @@ package egg82.engines.nulls {
 		public function setMp3Volume(mp3:uint, volume:Number = 1):void {
 			
 		}
-		
-		//public
 		
 		//private
 		

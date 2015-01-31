@@ -38,6 +38,7 @@ package egg82.engines.nulls {
 			
 		}
 		
+		//public
 		public function get updateFps():Number {
 			return 0;
 		}
@@ -101,8 +102,6 @@ package egg82.engines.nulls {
 		public function resize(window:uint = 0):void {
 			
 		}
-		
-		//public
 		
 		//private
 		

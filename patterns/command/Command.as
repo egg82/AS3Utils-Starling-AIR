@@ -36,6 +36,7 @@ package egg82.patterns.command {
 		public static const OBSERVERS:Vector.<Observer> = new Vector.<Observer>();
 		
 		private var timer:Timer;
+		protected var data:Object;
 		
 		//constructor
 		public function Command(delay:Number = 0) {
@@ -53,6 +54,16 @@ package egg82.patterns.command {
 		
 		//public
 		public function start():void {
+			if (timer) {
+				timer.start();
+				return;
+			}
+			
+			execute();
+		}
+		public function startSerialized(data:Object):void {
+			this.data = data;
+			
 			if (timer) {
 				timer.start();
 				return;

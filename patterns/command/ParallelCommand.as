@@ -33,12 +33,11 @@ package egg82.patterns.command {
 		//vars
 		private var commands:Array;
 		private var completed:uint;
-		private var total:uint;
 		
 		private var commandObserver:Observer = new Observer();
 		
 		//constructor
-		public function ParallelCommand(delay:Number = 0, ...commands) {
+		public function ParallelCommand(delay:Number = 0, commands:Array = null) {
 			super(delay);
 			this.commands = commands;
 			
@@ -56,63 +55,52 @@ package egg82.patterns.command {
 			
 			Observer.add(Command.OBSERVERS, commandObserver);
 			
-			total = 0;
 			completed = 0;
 			
-			for each (var obj:Object in commands) {
-				total++;
-				
-				if (!(obj is Command)) {
+			for (var i:uint = 0; i < commands.length; i++) {
+				if (!(commands[i] is Command)) {
 					completed++;
 					continue;
 				}
 				
-				var command:Command = obj as Command;
-				
+				var command:Command = commands[i] as Command;
 				command.start();
 			}
 			
-			if (completed == total) {
+			if (completed == commands.length) {
 				Observer.remove(Command.OBSERVERS, commandObserver);
 				dispatch(CommandEvent.COMPLETE);
 			}
 		}
 		
 		private function onCommandObserverNotify(sender:Object, event:String, data:Object):void {
+			var isInArr:Boolean = false;
+			for (var i:uint = 0; i < commands.length; i++) {
+				if (sender === commands[i]) {
+					isInArr = true;
+					break;
+				}
+			}
+			
+			if (!isInArr) {
+				return;
+			}
+			
 			if (event == CommandEvent.COMPLETE) {
-				handleData(sender as Command);
+				completed++;
+				
+				if (completed == commands.length) {
+					Observer.remove(Command.OBSERVERS, commandObserver);
+					dispatch(CommandEvent.COMPLETE);
+				}
 			} else if (event == CommandEvent.ERROR) {
-				handleError(sender as Command, data);
-			}
-		}
-		
-		private function handleData(sender:Command):void {
-			for each (var obj:Object in commands) {
-				if (!(obj is Command)) {
-					continue;
-				}
+				dispatch(CommandEvent.ERROR, data);
 				
-				if (obj === sender) {
-					completed++;
-					
-					if (completed == total) {
-						Observer.remove(Command.OBSERVERS, commandObserver);
-						dispatch(CommandEvent.COMPLETE);
-					}
-					
-					return;
-				}
-			}
-		}
-		private function handleError(sender:Command, data:Object):void {
-			for each (var obj:Object in commands) {
-				if (!(obj is Command)) {
-					continue;
-				}
+				completed++;
 				
-				if (obj === sender) {
-					dispatch(CommandEvent.ERROR, data);
-					return;
+				if (completed == commands.length) {
+					Observer.remove(Command.OBSERVERS, commandObserver);
+					dispatch(CommandEvent.COMPLETE);
 				}
 			}
 		}

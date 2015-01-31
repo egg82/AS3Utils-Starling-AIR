@@ -66,7 +66,7 @@ package egg82.sql {
 			
 			file = new File(dbPath);
 			
-			if (!file.exists || file.isDirectory) {
+			if (file.exists) {
 				return;
 			}
 			
@@ -109,7 +109,7 @@ package egg82.sql {
 			}
 			
 			if (sending || backlog.length > 0) {
-				backlog.push(query);
+				backlog.push(q);
 				backlogData.push(data);
 			} else {
 				sending = true;
@@ -143,7 +143,7 @@ package egg82.sql {
 		private function onSQLError(e:SQLErrorEvent):void {
 			dispatch(SQLiteEvent.ERROR, {
 				"error": e.error.message + File.lineEnding + "\tDetails: " + e.error.details,
-				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
+				"data": (backlogData && backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
 			});
 		}
 		private function onOpen(e:SQLEvent):void {
@@ -157,7 +157,11 @@ package egg82.sql {
 				statement.cancel();
 			}
 			
-			var path:String = file.nativePath;
+			var path:String = "";
+			
+			if (file) {
+				path = file.nativePath;
+			}
 			
 			statement = null;
 			backlog = null;
@@ -170,7 +174,7 @@ package egg82.sql {
 			var result:SQLResult = statement.getResult();
 			
 			dispatch(SQLiteEvent.RESULT, {
-				"result": new MySQLResult(result.data, result.lastInsertRowID, result.rowsAffected),
+				"result": (result) ? new MySQLResult(result.data, result.lastInsertRowID, result.rowsAffected) : new MySQLResult(new Array(), 0, 0),
 				"data": (backlogData.length > 0) ? backlogData.splice(0, 1)[0] : null
 			});
 			
