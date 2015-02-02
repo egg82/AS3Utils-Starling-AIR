@@ -45,17 +45,38 @@ package egg82.base {
 			
 		}
 		public function update():void {
-			for (var i:uint = 0; i < numChildren; i++) {
+			for (var i:int = numChildren - 1; i >= 0; i--) {
 				var child:DisplayObject = getChildAt(i);
+				
+				if (!child) {
+					continue;
+				}
 				
 				if ("update" in child && child["update"] is Function) {
 					(child["update"] as Function).call();
 				}
 			}
 		}
-		public function draw():void {
-			for (var i:uint = 0; i < numChildren; i++) {
+		public function postUpdate():void {
+			for (var i:int = numChildren - 1; i >= 0; i--) {
 				var child:DisplayObject = getChildAt(i);
+				
+				if (!child) {
+					continue;
+				}
+				
+				if ("postUpdate" in child && child["postUpdate"] is Function) {
+					(child["postUpdate"] as Function).call();
+				}
+			}
+		}
+		public function draw():void {
+			for (var i:int = numChildren - 1; i >= 0; i--) {
+				var child:DisplayObject = getChildAt(i);
+				
+				if (!child) {
+					continue;
+				}
 				
 				if ("draw" in child && child["draw"] is Function) {
 					(child["draw"] as Function).call();
@@ -68,8 +89,12 @@ package egg82.base {
 		public function destroy():void {
 			removeEventListeners();
 			
-			for (var i:uint = 0; i < numChildren; i++) {
+			for (var i:int = numChildren - 1; i >= 0; i--) {
 				var child:DisplayObject = getChildAt(i);
+				
+				if (!child) {
+					continue;
+				}
 				
 				if ("destroy" in child && child["destroy"] is Function) {
 					(child["destroy"] as Function).call();
@@ -79,10 +104,6 @@ package egg82.base {
 			}
 			
 			removeChildren(0, -1, true);
-		}
-		
-		public function swapStateBuffer():void {
-			
 		}
 		
 		public function get graphics():Graphics {
