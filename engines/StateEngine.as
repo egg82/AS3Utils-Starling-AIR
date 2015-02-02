@@ -142,6 +142,7 @@ package egg82.engines {
 			newState.create();
 			inputEngine.update();
 			newState.update();
+			newState.postUpdate();
 			newState.draw();
 			
 			if (Starling.all[0].context) {
@@ -314,7 +315,7 @@ package egg82.engines {
 		private function onUpdate(e:TimerEvent):void {
 			var time:Number;
 			var steps:uint;
-			var i:uint;
+			var i:int;
 			
 			if (!_updateFps) {
 				return;
@@ -342,8 +343,16 @@ package egg82.engines {
 			
 			inputEngine.update();
 			
-			for (i = 0; i < states.length; i++) {
-				for (var j:uint = 0; j < states[i].length; j++) {
+			for (i = states.length - 1; i >= 0; i--) {
+				if (!states[i]) {
+					continue;
+				}
+				
+				for (var j:int = states[i].length - 1; j >= 0; j--) {
+					if (!states[i][j]) {
+						continue;
+					}
+					
 					if (j == 0 || states[i][j].forceUpdate) {
 						if (_useTimestep) {
 							for (var k:uint = 0; k < steps; k++) {
@@ -355,6 +364,23 @@ package egg82.engines {
 							if (states[i][j].active) {
 								states[i][j].update();
 							}
+						}
+					}
+				}
+			}
+			for (i = states.length - 1; i >= 0; i--) {
+				if (!states[i]) {
+					continue;
+				}
+				
+				for (var j:int = states[i].length - 1; j >= 0; j--) {
+					if (!states[i][j]) {
+						continue;
+					}
+					
+					if (j == 0 || states[i][j].forceUpdate) {
+						if (states[i][j].active) {
+							states[i][j].postUpdate();
 						}
 					}
 				}
@@ -371,8 +397,16 @@ package egg82.engines {
 				drawTimer.delay = (1.0 / _drawFps) * 1000.0;
 			}
 			
-			for (var i:uint = 0; i < states.length; i++) {
-				for (var j:uint = 0; j < states[i].length; j++) {
+			for (var i:int = states.length - 1; i >= 0; i--) {
+				if (!states[i]) {
+					continue;
+				}
+				
+				for (var j:int = 0; j < states[i].length; j++) {
+					if (!states[i][j]) {
+						continue;
+					}
+					
 					if (j == 0 || states[i][j].forceUpdate) {
 						if (states[i][j].active) {
 							states[i][j].draw();
