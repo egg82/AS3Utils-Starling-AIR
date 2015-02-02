@@ -44,7 +44,7 @@ package egg82.base {
 		public function create():void {
 			
 		}
-		public function update():void {
+		public function update(deltaTime:Number):void {
 			for (var i:int = numChildren - 1; i >= 0; i--) {
 				var child:DisplayObject = getChildAt(i);
 				
@@ -53,7 +53,7 @@ package egg82.base {
 				}
 				
 				if ("update" in child && child["update"] is Function) {
-					(child["update"] as Function).call();
+					(child["update"] as Function).apply(null, [deltaTime]);
 				}
 			}
 		}
