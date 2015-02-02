@@ -314,6 +314,7 @@ package egg82.engines {
 		//private
 		private function onUpdate(e:TimerEvent):void {
 			var time:Number;
+			var timer:Number;
 			var steps:uint;
 			var i:int;
 			
@@ -355,14 +356,20 @@ package egg82.engines {
 					
 					if (j == 0 || states[i][j].forceUpdate) {
 						if (_useTimestep) {
-							for (var k:uint = 0; k < steps; k++) {
-								if (states[i][j].active) {
-									states[i][j].update();
+							if (states[i][j].active) {
+								for (var k:uint = 0; k < steps; k++) {
+									if (k == 0) {
+										timer = getTimer();
+										states[i][j].update(_deltaTime);
+									} else {
+										states[i][j].update(getTimer() - timer);
+										timer = getTimer();
+									}
 								}
 							}
 						} else {
 							if (states[i][j].active) {
-								states[i][j].update();
+								states[i][j].update(_deltaTime);
 							}
 						}
 					}
