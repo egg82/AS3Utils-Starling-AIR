@@ -1,6 +1,11 @@
 # AS3Utils-Starling-AIR
 AS3 utility classes - built for Starling and AIR
 
+##Please Note
+Changes made in the "dev" branch are highly unstable and can change without warning at any point.
+The "master" branch should be far more stable but get updates far less frequently.
+Choose wisely.
+
 ## Prerequisites
 - [Adobe AIR SDK][1]
 - [Starling Framework][2]
