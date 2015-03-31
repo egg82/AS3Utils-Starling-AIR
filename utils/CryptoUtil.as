@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package egg82.objects {
+package egg82.utils {
 	import com.hurlant.crypto.Crypto;
 	import com.hurlant.crypto.hash.MD5;
 	import com.hurlant.crypto.hash.SHA1;

@@ -22,8 +22,8 @@
 
 package egg82.sql {
 	import egg82.events.SQLiteEvent;
-	import egg82.objects.CryptoUtil;
 	import egg82.patterns.Observer;
+	import egg82.utils.CryptoUtil;
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
 	import flash.data.SQLResult;

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package egg82.objects {
+package egg82.utils {
 	import flash.display.BitmapData;
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
@@ -56,30 +56,6 @@ package egg82.objects {
 		}
 		public static function getObjectClassName(obj:*):String {
 			return getQualifiedClassName(obj);
-		}
-		
-		public static function random(min:Number, max:Number):Number {
-			return Math.random() * (max - min) + min;
-		}
-		public static function betterRoundedRandom(min:int, max:int):int {
-			var num:int;
-			max++;
-			
-			do {
-				num = Math.floor(Math.random() * (max - min) + min);
-			} while (num > max - 1);
-			
-			return num;
-		}
-		
-		public static function toXY(width:uint, x:uint, y:uint):uint {
-			return y * width + x;
-		}
-		public static function toX(width:uint, xy:uint):uint {
-			return xy % width;
-		}
-		public static function toY(width:uint, xy:uint):uint {
-			return Math.floor(xy / width);
 		}
 		
 		public static function deepCopy(source:Object):* {
@@ -174,23 +150,6 @@ package egg82.objects {
 			}
 			
 			return retArr;
-		}
-		
-		public static function getA(color:uint):uint {
-			return (color >> 24) & 0xFF
-		}
-		public static function getR(color:uint):uint {
-			return color >> 16;
-		}
-		public static function getG(color:uint):uint {
-			return (color >> 8) & 0xFF;
-		}
-		public static function getB(color:uint):uint {
-			return color & 0x00FF;
-		}
-		
-		public static function setColor(r:uint, g:uint, b:uint, a:uint):uint {
-			return (a << 24) | (r << 16) | (g << 8) | b;
 		}
 		
 		public static function setMouseCursor(name:String, bitmaps:Vector.<BitmapData>, framerate:uint, hotSpot:Point = null, replaceExisting:Boolean = false):void {

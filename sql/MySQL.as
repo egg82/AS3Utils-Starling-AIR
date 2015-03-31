@@ -27,8 +27,8 @@ package egg82.sql {
 	import com.maclema.mysql.MySqlToken;
 	import com.maclema.mysql.Statement;
 	import egg82.events.MySQLEvent;
-	import egg82.net.NetworkUtil;
 	import egg82.patterns.Observer;
+	import egg82.utils.NetUtil;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	
@@ -60,7 +60,7 @@ package egg82.sql {
 			
 			this.host = host + ":" + port;
 			
-			NetworkUtil.loadPolicyFile(host, policyPort);
+			NetUtil.loadPolicyFile(host, policyPort);
 			connection = new Connection(host, port, user, pass, db);
 			backlog = new Vector.<String>();
 			backlogData = new Vector.<Object>();

@@ -141,7 +141,7 @@ package egg82.engines {
 			newState.window = windows[window];
 			newState.create();
 			inputEngine.update();
-			newState.update();
+			newState.update(_deltaTime);
 			newState.postUpdate();
 			newState.draw();
 			
@@ -184,7 +184,8 @@ package egg82.engines {
 			newState.window = windows[window];
 			newState.create();
 			inputEngine.update();
-			newState.update();
+			newState.update(_deltaTime);
+			newState.postUpdate();
 			newState.draw();
 			
 			if (Starling.all[0].context) {
@@ -317,6 +318,7 @@ package egg82.engines {
 			var timer:Number;
 			var steps:uint;
 			var i:int;
+			var j:int;
 			
 			if (!_updateFps) {
 				return;
@@ -349,7 +351,7 @@ package egg82.engines {
 					continue;
 				}
 				
-				for (var j:int = states[i].length - 1; j >= 0; j--) {
+				for (j = states[i].length - 1; j >= 0; j--) {
 					if (!states[i][j]) {
 						continue;
 					}
@@ -380,7 +382,7 @@ package egg82.engines {
 					continue;
 				}
 				
-				for (var j:int = states[i].length - 1; j >= 0; j--) {
+				for (j = states[i].length - 1; j >= 0; j--) {
 					if (!states[i][j]) {
 						continue;
 					}

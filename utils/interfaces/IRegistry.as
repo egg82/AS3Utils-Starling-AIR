@@ -20,48 +20,28 @@
  * THE SOFTWARE.
  */
 
-package egg82.net {
-	import flash.system.Security;
+package egg82.utils.interfaces {
 	
 	/**
 	 * ...
 	 * @author egg82
 	 */
 	
-	public class NetworkUtil {
+	public interface IRegistry {
 		//vars
 		
 		//constructor
-		public function NetworkUtil() {
-			
-		}
 		
 		//public
-		public static function loadPolicyFile(host:String, port:uint):void {
-			if (port > 65535) {
-				return;
-			}
-			
-			try {
-				Security.allowDomain(host);
-				Security.allowInsecureDomain(host);
-			} catch (ex:Error) {
-				
-			}
-			
-			if (host.search("://") > -1) {
-				Security.loadPolicyFile(host + ":" + port);
-				Security.loadPolicyFile(host + ":" + port + "/crossdomain.xml");
-			} else {
-				Security.loadPolicyFile("xmlsocket://" + host + ":" + port);
-				Security.loadPolicyFile("https://" + host + ":" + port);
-				Security.loadPolicyFile("http://" + host + ":" + port);
-				
-				Security.loadPolicyFile("xmlsocket://" + host + ":" + port + "/crossdomain.xml");
-				Security.loadPolicyFile("https://" + host + ":" + port + "/crossdomain.xml");
-				Security.loadPolicyFile("http://" + host + ":" + port + "/crossdomain.xml");
-			}
-		}
+		function initialize():void;
+		
+		function setRegister(type:String, data:*):void;
+		function getRegister(type:String):*;
+		
+		function clearRegistry():void;
+		function resetRegistry():void;
+		
+		function get registryNames():Vector.<String>;
 		
 		//private
 		
