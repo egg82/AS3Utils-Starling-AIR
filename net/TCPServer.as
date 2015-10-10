@@ -284,7 +284,8 @@ package egg82.net {
 				+ "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">"
 				+ "<cross-domain-policy>"
 					+ "<site-control permitted-cross-domain-policies=\"master-only\"/>"
-					+ "<allow-access-from domain=\"*\" to-ports=\"" + server.localPort + "\"/>"
+					+ "<allow-access-from domain=\"*\" to-ports=\"" + server.localPort + "\" secure=\"false\"/>"
+					+ "<allow-http-request-headers-from domain=\"*\" headers=\"*\"/>"
 				+ "</cross-domain-policy>\x00";
 				
 				writeData.writeUTFBytes("Content-Type: application/xml \r\n" + "Content-Length: " + writeString.length + " \r\n" + writeString);
